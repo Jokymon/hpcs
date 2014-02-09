@@ -23,8 +23,10 @@ __pycache__
 pip-log.txt
 
 # Unit test / coverage reports
+htmlcov
 .coverage
 .tox
+.cache
 nosetests.xml
 
 # Translations
@@ -34,3 +36,6 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+
+# Vim
+*.swp
