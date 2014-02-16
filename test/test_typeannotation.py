@@ -27,41 +27,6 @@ class TestSymbolTable:
         assert nested_tab.find_symbol("aname") is not None
 
 
-class TestSymbolLookup:
-    def testEmptyScopeStack(self, annotator):
-        assert annotator.lookup_symbol("unknown_id") == None
-
-    def testNonexistingSymbol(self, annotator):
-        annotator.push_scope()
-        sym = Symbol("aname")
-        annotator.add_symbol_to_top_scope(sym)
-        assert annotator.lookup_symbol("anothername") == None
-
-    def testSymbolInTopScope(self, annotator):
-        annotator.push_scope()
-        sym = Symbol("aname")
-        annotator.add_symbol_to_top_scope(sym)
-        assert annotator.lookup_symbol("aname") != None
-
-    def testSymbolInNestedScope(self, annotator):
-        annotator.push_scope()
-        sym = Symbol("nestedname")
-        annotator.add_symbol_to_top_scope(sym)
-        annotator.push_scope()
-        assert annotator.lookup_symbol("nestedname") != None
-
-    def testSymbolAfterNestedScope(self, annotator):
-        annotator.push_scope()
-        sym = Symbol("nestedname")
-        annotator.add_symbol_to_top_scope(sym)
-        annotator.push_scope()
-        sym = Symbol("topname")
-        annotator.add_symbol_to_top_scope(sym)
-        annotator.pop_scope()
-        assert annotator.lookup_symbol("nestedname") != None
-
-
-
 class TestTypeAnnotation:
     def setup_method(self, method):
         self.annotator = TypeAnnotator()
@@ -73,7 +38,7 @@ class TestTypeAnnotation:
 a = 2
         """
         assert self.ast.body[0].targets[0].typ == UInt8
-        assert self.annotator.lookup_symbol("a").typ == UInt8
+        assert self.ast.scope.find_symbol("a").typ == UInt8
 
     def testFunctionScopeSingleAssignment(self):
         """
@@ -81,6 +46,8 @@ def test1(a : int):
     b = a
         """
         assert self.ast.body[0].body[0].targets[0].typ == int
+        assert self.ast.body[0].body[0].scope.find_symbol("a").typ == int
+        assert self.ast.body[0].scope.find_symbol("a").typ == int
 
     def testBinaryOperationUInt8(self):
         """
@@ -90,6 +57,9 @@ def test1():
     c = a + b
         """
         assert self.ast.body[0].body[2].targets[0].typ == UInt8
+        assert self.ast.body[0].scope.find_symbol("a").typ == UInt8
+        assert self.ast.body[0].scope.find_symbol("b").typ == UInt8
+        assert self.ast.body[0].scope.find_symbol("c").typ == UInt8
 
     def testBinaryOperationUInt16(self):
         """
@@ -99,3 +69,6 @@ def test1():
     c = a + b
         """
         assert self.ast.body[0].body[2].targets[0].typ == UInt16
+        assert self.ast.body[0].scope.find_symbol("a").typ == UInt8
+        assert self.ast.body[0].scope.find_symbol("b").typ == UInt16
+        assert self.ast.body[0].scope.find_symbol("c").typ == UInt16

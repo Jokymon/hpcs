@@ -36,25 +36,19 @@ class SymbolTable(object):
 class TypeAnnotator(ast.NodeTransformer):
     def __init__(self):
         self.scope_stack = []
-        self.push_scope()   # create outer-most scope
         self.typing = typing.TypingSystem(None)
 
-    def push_scope(self):
-        self.scope_stack.append({})
+    def push_scope(self, scope):
+        self.scope_stack.append(scope)
 
     def pop_scope(self):
         self.scope_stack.pop()
 
     def lookup_symbol(self, id):
-        if not self.scope_stack:
-            return None
-        for scope in reversed(self.scope_stack):
-            if id in scope.keys():
-                return scope[id]
-        return None
+        return self.scope_stack[-1].find_symbol(id)
 
     def add_symbol_to_top_scope(self, symbol):
-        self.scope_stack[-1][symbol.name] = symbol
+        self.scope_stack[-1].add_symbol(symbol)
 
     def visit_arguments(self, node):
         for arg in node.args:
@@ -65,9 +59,20 @@ class TypeAnnotator(ast.NodeTransformer):
             self.add_symbol_to_top_scope(sym)
         
         return node
+
+    def visit_Module(self, node):
+        scope = SymbolTable(None)
+        node.scope = scope
+        self.push_scope(scope)
+        node.body = [ self.visit(stmt) for stmt in node.body ]
+        self.pop_scope()
+        return node
     
     def visit_FunctionDef(self, node):
-        self.push_scope()
+        function_scope = SymbolTable(self.scope_stack[-1])
+        self.push_scope(function_scope)
+        node.scope = function_scope
+
         node.args = self.visit(node.args)
         node.body = [ self.visit(child) for child in node.body ]
         node.decorator_list = [ self.visit(node.decorator_list) for child in node.decorator_list ]
@@ -83,6 +88,7 @@ class TypeAnnotator(ast.NodeTransformer):
 
     def visit_Assign(self, node):
         # targets* = value (expr)
+        node.scope = self.scope_stack[-1]
         node.value = self.visit(node.value)
         assert len(node.targets)==1, "Only single target is supported for assignments"
         sym = self.lookup_symbol(node.targets[0].id)
