@@ -37,8 +37,8 @@ class TestTypeAnnotation:
         """
 a = 2
         """
-        assert self.ast.body[0].targets[0].typ == UInt8
-        assert self.ast.scope.find_symbol("a").typ == UInt8
+        assert self.ast.body[0].targets[0].typ == Int8
+        assert self.ast.scope.find_symbol("a").typ == Int8
 
     def testFunctionScopeSingleAssignment(self):
         """
@@ -49,26 +49,26 @@ def test1(a : int):
         assert self.ast.body[0].body[0].scope.find_symbol("a").typ == int
         assert self.ast.body[0].scope.find_symbol("a").typ == int
 
-    def testBinaryOperationUInt8(self):
+    def testBinaryOperationInt8(self):
         """
 def test1():
     a = 5
     b = 67
     c = a + b
         """
-        assert self.ast.body[0].body[2].targets[0].typ == UInt8
-        assert self.ast.body[0].scope.find_symbol("a").typ == UInt8
-        assert self.ast.body[0].scope.find_symbol("b").typ == UInt8
-        assert self.ast.body[0].scope.find_symbol("c").typ == UInt8
+        assert self.ast.body[0].body[2].targets[0].typ == Int8
+        assert self.ast.body[0].scope.find_symbol("a").typ == Int8
+        assert self.ast.body[0].scope.find_symbol("b").typ == Int8
+        assert self.ast.body[0].scope.find_symbol("c").typ == Int8
 
-    def testBinaryOperationUInt16(self):
+    def testBinaryOperationInt16(self):
         """
 def test1():
     a = 5
     b = 62000
     c = a + b
         """
-        assert self.ast.body[0].body[2].targets[0].typ == UInt16
-        assert self.ast.body[0].scope.find_symbol("a").typ == UInt8
-        assert self.ast.body[0].scope.find_symbol("b").typ == UInt16
-        assert self.ast.body[0].scope.find_symbol("c").typ == UInt16
+        assert self.ast.body[0].body[2].targets[0].typ == Int16
+        assert self.ast.body[0].scope.find_symbol("a").typ == Int8
+        assert self.ast.body[0].scope.find_symbol("b").typ == Int16
+        assert self.ast.body[0].scope.find_symbol("c").typ == Int16

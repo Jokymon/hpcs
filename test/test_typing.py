@@ -9,21 +9,21 @@ def typesystem():
 
 
 class TestTypeGeneration:
-    def testUInt8(self, typesystem):
-        assert typesystem.get_type_from_number(8) == UInt8
-        assert typesystem.get_type_from_number(255) == UInt8
+    def testInt8(self, typesystem):
+        assert typesystem.get_type_from_number(8) == Int8
+        assert typesystem.get_type_from_number(255) == Int8
 
-    def testUInt16(self, typesystem):
-        assert typesystem.get_type_from_number(256) == UInt16
-        assert typesystem.get_type_from_number(65535) == UInt16
+    def testInt16(self, typesystem):
+        assert typesystem.get_type_from_number(256) == Int16
+        assert typesystem.get_type_from_number(65535) == Int16
 
-    def testUInt32(self, typesystem):
-        assert typesystem.get_type_from_number(65536) == UInt32
+    def testInt32(self, typesystem):
+        assert typesystem.get_type_from_number(65536) == Int32
 
 
 class TestTypeResolution:
-    def testUInt8Adding(self, typesystem):
-        assert typesystem.resolve_types(UInt8, UInt8, ast.Add) == UInt8
+    def testInt8Adding(self, typesystem):
+        assert typesystem.resolve_types(Int8, Int8, ast.Add) == Int8
 
-    def testUInt8UInt16Adding(self, typesystem):
-        assert typesystem.resolve_types(UInt8, UInt16, ast.Add) == UInt16
+    def testInt8Int16Adding(self, typesystem):
+        assert typesystem.resolve_types(Int8, Int16, ast.Add) == Int16

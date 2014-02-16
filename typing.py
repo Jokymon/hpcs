@@ -1,22 +1,9 @@
-class BaseType(object):
-    pass
+from llvm.core import *
 
 
-class NumericType(type):
-    def __lt__(cls, other):
-        return cls.size_in_bits < other.size_in_bits
-
-
-class UInt8(metaclass=NumericType):
-    size_in_bits = 8
-
-
-class UInt16(metaclass=NumericType):
-    size_in_bits = 16
-
-
-class UInt32(metaclass=NumericType):
-    size_in_bits = 32
+Int8 = Type.int(8)
+Int16 = Type.int(16)
+Int32 = Type.int(32)
 
 
 class TypingSystem(object):
@@ -25,11 +12,14 @@ class TypingSystem(object):
 
     def get_type_from_number(self, value):
         if value < 2**8:
-            return UInt8
+            return Int8
         elif value < 2**16:
-            return UInt16
+            return Int16
         else:
-            return UInt32
+            return Int32
 
     def resolve_types(self, type1, type2, operation):
-        return max(type1, type2)
+        assert type(type1)==type(type2) # can only resolve same base types
+        if type1.width > type2.width:
+            return type1
+        return type2
