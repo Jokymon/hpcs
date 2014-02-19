@@ -3,8 +3,7 @@ from llvm import *
 from llvm.core import *
 
 
-ty_int = Type.int()
-ty_func = Type.function(ty_int, [])
+ty_func = Type.function(Type.void(), [])
 
 
 class ConstraintChecker(ast.NodeVisitor):
@@ -23,54 +22,58 @@ class ConstraintChecker(ast.NodeVisitor):
             self.visit(node.returns)
 
 
-class CompilerVisitor(ast.NodeVisitor):
+class CompilerVisitor(ast.NodeTransformer):
     def __init__(self):
         # TODO: change output stream
-        self.temporary_stack = []
-        self.temporary_index = 1
-
-    def get_temporary(self):
-        name = "%%temp%u" % self.temporary_index
-        self.temporary_index += 1
-        return name
+        pass
 
     def visit_Module(self, node):
         self.module = Module.new('main')
         fun = self.module.add_function(ty_func, "main")
         self.bb = fun.append_basic_block("entry")
         self.builder = Builder.new(self.bb)
-        #print("define i32 @main() {")
+
+        for sym in node.scope.table.values():
+            alloca = self.builder.alloca(sym.typ, sym.name)
+            sym.alloca = alloca
+
         for stmt in node.body:
             self.visit(stmt)
-        #print("    ret i32 0")
-        #print("}")
+
+        self.builder.ret_void()
+        self.module.verify()
         print(self.module)
+        return node
 
     def visit_FunctionDef(self, node):
-        #print("args: ", node.args.args)
-        #print(".function %s" % node.name)
         # name, args, annotation, arg*, vararg, ...... body
-        pass
+        return node
 
     def visit_Assign(self, node):
-        temp = self.get_temporary()
-        self.temporary_stack.append(temp)
+        lhs = node.targets[0].id
         self.visit(node.value)
-        #if node.targets[0].id=="a":
-        #    print("    %a = alloca i32")
-        #    print("    %temp1 = add i32 0, 3")
-        #else:
-        #    print("    %b = alloca i32")
-        #    print("    %temp2 = add i32 0, 32")
-        #print("    store i32 %s, i32* %%%s" % (temp, node.targets[0].id))
+        target = node.scope.find_symbol(lhs).alloca
+        self.builder.store(node.value.llvm_value, node.scope.find_symbol(lhs).alloca)
+        return node
 
     def visit_BinOp(self, node):
-        pass
         # left, op, right
+        node.left = self.visit(node.left)
+        node.right = self.visit(node.right)
+        node.llvm_value = self.builder.add(node.left.llvm_value, node.right.llvm_value, 'addtmp')
+        return node
 
     def visit_Name(self, node):
-        pass
-        #print(node)
+        # TODO: could use the expr_context of node to find out what to do (load, store, ...)
+        sym = node.sym
+        node.llvm_value = self.builder.load(sym.alloca, sym.name)
+        return node
+
+    def visit_Num(self, node):
+        # TODO: calculate the right size for the constant
+        # TODO: Also think about type extension
+        node.llvm_value = Constant.int(Type.int(8), node.n)
+        return node
 
 
 

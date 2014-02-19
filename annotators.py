@@ -118,4 +118,5 @@ class TypeAnnotator(ast.NodeTransformer):
                 node.typ = sym.typ
             else:
                 raise KeyError("Can't determine type of '%s' @%u:%u" % (node.id, node.lineno, node.col_offset))
+            node.sym = sym
         return node
