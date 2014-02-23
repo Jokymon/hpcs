@@ -21,6 +21,12 @@ class ConstraintChecker(ast.NodeVisitor):
         if node.returns is not None:
             self.visit(node.returns)
 
+    def visit_Assign(self, node):
+        self.visit(node.value)
+        for target in node.targets:
+            self.visit(target)
+        assert len(node.targets)==1, "Only single target is supported for assignments"
+
 
 class CompilerVisitor(ast.NodeTransformer):
     def __init__(self):

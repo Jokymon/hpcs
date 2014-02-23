@@ -90,7 +90,6 @@ class TypeAnnotator(ast.NodeTransformer):
         # targets* = value (expr)
         node.scope = self.scope_stack[-1]
         node.value = self.visit(node.value)
-        assert len(node.targets)==1, "Only single target is supported for assignments"
         sym = self.lookup_symbol(node.targets[0].id)
         if sym is None:
             sym = Symbol(node.targets[0].id)
