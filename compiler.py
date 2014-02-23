@@ -60,7 +60,13 @@ class CompilerVisitor(ast.NodeTransformer):
         # left, op, right
         node.left = self.visit(node.left)
         node.right = self.visit(node.right)
-        node.llvm_value = self.builder.add(node.left.llvm_value, node.right.llvm_value, 'addtmp')
+        left = node.left.llvm_value
+        right = node.right.llvm_value
+        if node.left.typ.width > node.right.typ.width:
+            right = self.builder.sext(right, node.left.typ, 'right_extended')
+        elif node.right.typ.width > node.left.typ.width:
+            left = self.builder.sext(left, node.right.typ, 'left_extended')
+        node.llvm_value = self.builder.add(left, right, 'addtmp')
         return node
 
     def visit_Name(self, node):
@@ -70,9 +76,8 @@ class CompilerVisitor(ast.NodeTransformer):
         return node
 
     def visit_Num(self, node):
-        # TODO: calculate the right size for the constant
-        # TODO: Also think about type extension
-        node.llvm_value = Constant.int(Type.int(8), node.n)
+        # TODO: Use the right type for Constant.<type here>
+        node.llvm_value = Constant.int(node.typ, node.n)
         return node
 
 
