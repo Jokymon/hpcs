@@ -21,6 +21,13 @@ class TestTypeGeneration:
         assert typesystem.get_type_from_number(65536) == Int32
 
 
+class TestTypeGenerationById:
+    def testInt(self, typesystem):
+        assert typesystem.get_type_for_id("Int8") == Int8
+        assert typesystem.get_type_for_id("Int16") == Int16
+        assert typesystem.get_type_for_id("Int32") == Int32
+
+
 class TestTypeResolution:
     def testInt8Adding(self, typesystem):
         assert typesystem.resolve_types(Int8, Int8, ast.Add) == Int8

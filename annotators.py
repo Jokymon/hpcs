@@ -32,8 +32,7 @@ class TypeAnnotator(ast.NodeTransformer):
         for arg in node.args:
             sym = symtab.Symbol(arg.arg)
             assert isinstance(arg.annotation, ast.Name), "Argument annotation must be a type identifier"
-            # TODO: Yuk, this eval is ugly and evil, is there any other way?
-            sym.typ = eval(arg.annotation.id)
+            sym.typ = self.typing.get_type_for_id(arg.annotation.id)
             self.add_symbol_to_top_scope(sym)
         
         return node

@@ -18,6 +18,11 @@ class TypingSystem(object):
         else:
             return Int32
 
+    def get_type_for_id(self, id):
+        if id in ["Int8", "Int16", "Int32"]:
+            return eval(id)
+        return None
+
     def resolve_types(self, type1, type2, operation):
         assert type(type1)==type(type2) # can only resolve same base types
         if type1.width > type2.width:

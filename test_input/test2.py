@@ -1,7 +1,7 @@
 #def deco(f):
 #    return f
 #
-def calculate(a : int, b : int, c : int):
+def calculate(a : Int16, b : Int16, c : Int16):
     z = 2*a + b
     return z**c
 

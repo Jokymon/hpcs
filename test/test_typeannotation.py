@@ -24,12 +24,12 @@ a = 2
 
     def testFunctionScopeSingleAssignment(self):
         """
-def test1(a : int):
+def test1(a : Int8):
     b = a
         """
-        assert self.ast.body[0].body[0].targets[0].typ == int
-        assert self.ast.body[0].body[0].scope.find_symbol("a").typ == int
-        assert self.ast.body[0].scope.find_symbol("a").typ == int
+        assert self.ast.body[0].body[0].targets[0].typ == Int8
+        assert self.ast.body[0].body[0].scope.find_symbol("a").typ == Int8
+        assert self.ast.body[0].scope.find_symbol("a").typ == Int8
 
     def testBinaryOperationInt8(self):
         """
