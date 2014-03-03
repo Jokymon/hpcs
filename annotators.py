@@ -7,30 +7,8 @@
 # - How should be handle the pointer type?
 
 import typing
+import symtab
 import ast
-
-
-class Symbol(object):
-    def __init__(self, name, typ=None):
-        self.name = name
-        self.typ = typ
-
-
-class SymbolTable(object):
-    def __init__(self, parent):
-        self.parent = parent
-        self.table = {}
-
-    def find_symbol(self, name):
-        if name in self.table:
-            return self.table[name]
-        elif self.parent is None:
-            return None
-        else:
-            return self.parent.find_symbol(name)
-
-    def add_symbol(self, sym):
-        self.table[sym.name] = sym
 
 
 class TypeAnnotator(ast.NodeTransformer):
@@ -52,7 +30,7 @@ class TypeAnnotator(ast.NodeTransformer):
 
     def visit_arguments(self, node):
         for arg in node.args:
-            sym = Symbol(arg.arg)
+            sym = symtab.Symbol(arg.arg)
             assert isinstance(arg.annotation, ast.Name), "Argument annotation must be a type identifier"
             # TODO: Yuk, this eval is ugly and evil, is there any other way?
             sym.typ = eval(arg.annotation.id)
@@ -61,7 +39,7 @@ class TypeAnnotator(ast.NodeTransformer):
         return node
 
     def visit_Module(self, node):
-        scope = SymbolTable(None)
+        scope = symtab.SymbolTable(None)
         node.scope = scope
         self.push_scope(scope)
         node.body = [ self.visit(stmt) for stmt in node.body ]
@@ -69,7 +47,7 @@ class TypeAnnotator(ast.NodeTransformer):
         return node
     
     def visit_FunctionDef(self, node):
-        function_scope = SymbolTable(self.scope_stack[-1])
+        function_scope = symtab.SymbolTable(self.scope_stack[-1])
         self.push_scope(function_scope)
         node.scope = function_scope
 
@@ -92,7 +70,7 @@ class TypeAnnotator(ast.NodeTransformer):
         node.value = self.visit(node.value)
         sym = self.lookup_symbol(node.targets[0].id)
         if sym is None:
-            sym = Symbol(node.targets[0].id)
+            sym = symtab.Symbol(node.targets[0].id)
             sym.typ = node.value.typ
             self.add_symbol_to_top_scope(sym)
         node.targets[0].typ = node.value.typ
