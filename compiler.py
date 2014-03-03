@@ -12,7 +12,6 @@ class ConstraintChecker(ast.NodeVisitor):
         assert node.args.kwarg == None, "kwargs are not supported"
         assert node.args.vararg == None, "varargs are not supported"
         assert node.args.defaults == [], "defaults are not supported"
-        self.visit(node.name)
         self.visit(node.args)
         for stmt in node.body:
             self.visit(stmt)
