@@ -1,6 +1,7 @@
 import ast
 import sys
 import annotators
+import llvm_builder
 import compiler
 
 
@@ -10,7 +11,7 @@ def main(file_name):
         checker = compiler.ConstraintChecker()
         checker.visit(source)
         source = annotators.TypeAnnotator().visit(source)
-        vst = compiler.CompilerVisitor()
+        vst = compiler.CompilerVisitor(llvm_builder.LLVMBuilder())
         vst.visit(source)
         #print(ast.dump(a))
 

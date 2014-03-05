@@ -1,4 +1,5 @@
 import ast
+import llvm_builder
 from llvm import *
 from llvm.core import *
 
@@ -28,13 +29,13 @@ class ConstraintChecker(ast.NodeVisitor):
 
 
 class CompilerVisitor(ast.NodeTransformer):
-    def __init__(self):
+    def __init__(self, code_builder):
         # TODO: change output stream
-        pass
+        self.code_builder = code_builder
 
     def visit_Module(self, node):
-        self.module = Module.new('main')
-        fun = self.module.add_function(ty_func, "main")
+        module = self.code_builder.new_module('main')
+        fun = module.add_function(ty_func, "main")
         self.bb = fun.append_basic_block("entry")
         self.builder = Builder.new(self.bb)
 
@@ -46,8 +47,8 @@ class CompilerVisitor(ast.NodeTransformer):
             self.visit(stmt)
 
         self.builder.ret_void()
-        self.module.verify()
-        print(self.module)
+        module.verify()
+        print(module)
         return node
 
     def visit_FunctionDef(self, node):
