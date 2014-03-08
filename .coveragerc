@@ -1,2 +1,2 @@
 [run]
-omit = test_input/
+omit = test_input/, test/*
