@@ -1,17 +1,13 @@
 import ast
 import llvm_builder
-from llvm import *
-from llvm.core import *
-
-
-ty_func = Type.function(Type.void(), [])
+from typing import *
 
 
 class ConstraintChecker(ast.NodeVisitor):
     def visit_FunctionDef(self, node):
         assert node.decorator_list == [], "Can't handle decorators"
-        assert node.args.kwarg == None, "kwargs are not supported"
-        assert node.args.vararg == None, "varargs are not supported"
+        assert node.args.kwarg is None, "kwargs are not supported"
+        assert node.args.vararg is None, "varargs are not supported"
         assert node.args.defaults == [], "defaults are not supported"
         self.visit(node.args)
         for stmt in node.body:
@@ -25,7 +21,7 @@ class ConstraintChecker(ast.NodeVisitor):
         self.visit(node.value)
         for target in node.targets:
             self.visit(target)
-        assert len(node.targets)==1, "Only single target is supported for assignments"
+        assert len(node.targets) == 1, "Only single target is supported for assignments"
 
 
 class CompilerVisitor(ast.NodeTransformer):
@@ -35,9 +31,9 @@ class CompilerVisitor(ast.NodeTransformer):
 
     def visit_Module(self, node):
         module = self.code_builder.new_module('main')
-        fun = module.add_function(ty_func, "main")
-        self.bb = fun.append_basic_block("entry")
-        self.builder = Builder.new(self.bb)
+        fun = module.new_function("main", Function(Void(), []))
+        self.bb = fun.add_basic_block("entry")
+        self.builder = self.bb.get_irbuilder()
 
         for sym in node.scope.table.values():
             alloca = self.builder.alloca(sym.typ, sym.name)
@@ -82,8 +78,7 @@ class CompilerVisitor(ast.NodeTransformer):
         return node
 
     def visit_Num(self, node):
-        # TODO: Use the right type for Constant.<type here>
-        node.llvm_value = Constant.int(node.typ, node.n)
+        node.llvm_value = self.code_builder.new_constant(node.typ, node.n)
         return node
 
 

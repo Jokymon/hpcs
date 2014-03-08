@@ -1,9 +1,33 @@
-from llvm.core import *
+class Void:
+    def __eq__(self, other):
+        if isinstance(other, Void):
+            return True
+        return False
 
 
-Int8 = Type.int(8)
-Int16 = Type.int(16)
-Int32 = Type.int(32)
+class Integer:
+    def __init__(self, bit_width):
+        self.width = bit_width
+
+
+Int8 = Integer(8)
+Int16 = Integer(16)
+Int32 = Integer(32)
+
+
+class Function:
+    def __init__(self, return_type, signature):
+        self.return_type = return_type
+        self.signature = signature
+
+    def __eq__(self, other):
+        if not isinstance(other, Function):
+            return False
+        if other.return_type != self.return_type:
+            return False
+        if other.signature != self.signature:
+            return False
+        return True
 
 
 class TypingSystem(object):

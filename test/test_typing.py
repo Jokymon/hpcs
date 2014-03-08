@@ -3,6 +3,32 @@ import ast
 from typing import *
 
 
+class TestTypeEquality:
+    def testVoidEquality(self):
+        v1 = Void()
+        v2 = Void()
+
+        assert v1 == v2
+        assert v1 == v1
+
+    def testIntegerEquality(self):
+        i8 = Int8
+        i16 = Int16
+        i32 = Int32
+
+        assert i8 == Int8
+        assert Int8 == Int8
+        assert i16 == Int16
+
+        assert Int8 != Int16
+
+    def testSimpleFunctionEquality(self):
+        func1 = Function(Void(), [])
+        func2 = Function(Void(), [])
+
+        assert func1 == func2
+
+
 @pytest.fixture
 def typesystem():
     return TypingSystem(None)
