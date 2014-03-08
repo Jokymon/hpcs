@@ -3,6 +3,13 @@ python:
   - "2.7"
   - "3.2"
 install:
+  - wget "http://repo.continuum.io/pkgs/free/linux-64/llvm-3.2-0.tar.bz2"
+  - tar -xjf llvm-3.2-0.tar.bz2
+  - PATH+=":`pwd`/bin"
+  - export LD_LIBRARY_PATH="`pwd`/lib"
+  - export LLVM_CONFIG_PATH="`pwd`/bin/llvm-config"
+  - $LLVM_CONFIG_PATH --cflags # test llvm-config
+  - export LLVMPY_DYNLINK=1
   - pip install -r requirements.txt
 
 script: 
