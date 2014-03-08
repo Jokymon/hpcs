@@ -30,7 +30,9 @@ class TestAssignment(CompilerTestBase):
         self.compiler.visit(self.tree)
 
         self.builder_mock.new_module.assert_called_with("main")
-        self.module_mock.new_function.assert_called_with("main", typing.Function(typing.Void(), []))
+        self.module_mock.new_function.assert_called_with(
+            "main",
+            typing.Function(typing.Void(), []))
 
     def notestAssignSingleInter(self):
         """

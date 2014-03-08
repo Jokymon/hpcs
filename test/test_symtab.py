@@ -4,7 +4,7 @@ from symtab import *
 class TestSymbolTable:
     def testEmptyTable(self):
         tab = SymbolTable(None)
-        assert tab.find_symbol("unknown_id") == None
+        assert tab.find_symbol("unknown_id") is None
 
     def testExistingSymbol(self):
         tab = SymbolTable(None)
@@ -17,6 +17,3 @@ class TestSymbolTable:
 
         tab.add_symbol(Symbol("aname", None))
         assert nested_tab.find_symbol("aname") is not None
-
-
-

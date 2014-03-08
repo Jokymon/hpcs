@@ -21,7 +21,8 @@ class ConstraintChecker(ast.NodeVisitor):
         self.visit(node.value)
         for target in node.targets:
             self.visit(target)
-        assert len(node.targets) == 1, "Only single target is supported for assignments"
+        assert len(node.targets) == 1, \
+            "Only single target is supported for assignments"
 
 
 class CompilerVisitor(ast.NodeTransformer):
@@ -55,7 +56,8 @@ class CompilerVisitor(ast.NodeTransformer):
         lhs = node.targets[0].id
         self.visit(node.value)
         target = node.scope.find_symbol(lhs).alloca
-        self.builder.store(node.value.llvm_value, node.scope.find_symbol(lhs).alloca)
+        self.builder.store(node.value.llvm_value,
+                           node.scope.find_symbol(lhs).alloca)
         return node
 
     def visit_BinOp(self, node):
@@ -72,7 +74,8 @@ class CompilerVisitor(ast.NodeTransformer):
         return node
 
     def visit_Name(self, node):
-        # TODO: could use the expr_context of node to find out what to do (load, store, ...)
+        # TODO: could use the expr_context of node to find out what to do
+        # (load, store, ...)
         sym = node.sym
         node.llvm_value = self.builder.load(sym.alloca, sym.name)
         return node
@@ -80,6 +83,3 @@ class CompilerVisitor(ast.NodeTransformer):
     def visit_Num(self, node):
         node.llvm_value = self.code_builder.new_constant(node.typ, node.n)
         return node
-
-
-

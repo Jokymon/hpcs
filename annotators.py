@@ -31,28 +31,30 @@ class TypeAnnotator(ast.NodeTransformer):
     def visit_arguments(self, node):
         for arg in node.args:
             sym = symtab.Symbol(arg.arg)
-            assert isinstance(arg.annotation, ast.Name), "Argument annotation must be a type identifier"
+            assert isinstance(arg.annotation, ast.Name), \
+                "Argument annotation must be a type identifier"
             sym.typ = self.typing.get_type_for_id(arg.annotation.id)
             self.add_symbol_to_top_scope(sym)
-        
+
         return node
 
     def visit_Module(self, node):
         scope = symtab.SymbolTable(None)
         node.scope = scope
         self.push_scope(scope)
-        node.body = [ self.visit(stmt) for stmt in node.body ]
+        node.body = [self.visit(stmt) for stmt in node.body]
         self.pop_scope()
         return node
-    
+
     def visit_FunctionDef(self, node):
         function_scope = symtab.SymbolTable(self.scope_stack[-1])
         self.push_scope(function_scope)
         node.scope = function_scope
 
         node.args = self.visit(node.args)
-        node.body = [ self.visit(child) for child in node.body ]
-        node.decorator_list = [ self.visit(node.decorator_list) for child in node.decorator_list ]
+        node.body = [self.visit(child) for child in node.body]
+        node.decorator_list = [self.visit(node.decorator_list)
+                               for child in node.decorator_list]
         # TODO: The return type of the function can also be determined using
         # the types of Return nodes
         if node.returns is not None:
@@ -80,7 +82,10 @@ class TypeAnnotator(ast.NodeTransformer):
         node.op = self.visit(node.op)
         node.right = self.visit(node.right)
         # TODO: handle more complicated cases such as int * string etc.
-        node.typ = self.typing.resolve_types(node.left.typ, node.right.typ, node.op)
+        node.typ = self.typing.resolve_types(
+            node.left.typ,
+            node.right.typ,
+            node.op)
         return node
 
     def visit_Num(self, node):
@@ -93,6 +98,7 @@ class TypeAnnotator(ast.NodeTransformer):
             if hasattr(sym, "typ") and sym.typ is not None:
                 node.typ = sym.typ
             else:
-                raise KeyError("Can't determine type of '%s' @%u:%u" % (node.id, node.lineno, node.col_offset))
+                raise KeyError("Can't determine type of '%s' @%u:%u" %
+                               (node.id, node.lineno, node.col_offset))
             node.sym = sym
         return node

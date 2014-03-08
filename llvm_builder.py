@@ -9,7 +9,7 @@ def convert_type(generic_type):
         return Type.int(generic_type.width)
     elif isinstance(generic_type, typing.Function):
         return_type = convert_type(generic_type.return_type)
-        signature = [ convert_type(t) for t in generic_type.signature ]
+        signature = [convert_type(t) for t in generic_type.signature]
         return Type.function(return_type, signature)
     else:
         raise Exception("Couldn't convert this type: %s" % generic_type)
@@ -83,4 +83,3 @@ class LLVMBuilder:
     def new_constant(self, signature, value):
         # TODO: use the right function of Constant based on signature
         return Constant.int(convert_type(signature), value)
-

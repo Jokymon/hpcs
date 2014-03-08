@@ -48,7 +48,7 @@ class TypingSystem(object):
         return None
 
     def resolve_types(self, type1, type2, operation):
-        assert type(type1)==type(type2) # can only resolve same base types
+        assert type(type1) == type(type2)  # can only resolve same base types
         if type1.width > type2.width:
             return type1
         return type2

@@ -19,6 +19,3 @@ class SymbolTable(object):
 
     def add_symbol(self, sym):
         self.table[sym.name] = sym
-
-
-
