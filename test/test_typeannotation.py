@@ -54,3 +54,12 @@ def test1():
         assert self.ast.body[0].scope.find_symbol("a").typ == Int8
         assert self.ast.body[0].scope.find_symbol("b").typ == Int16
         assert self.ast.body[0].scope.find_symbol("c").typ == Int16
+
+
+class TestFailingTypeAnnotation:
+    def testUnknownSymbol(self):
+        annotator = TypeAnnotator()
+        an_ast = ast.parse("a = b")
+
+        with pytest.raises(KeyError):
+            an_ast = annotator.visit(an_ast)
