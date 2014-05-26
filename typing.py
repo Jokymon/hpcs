@@ -9,6 +9,9 @@ class Integer:
     def __init__(self, bit_width):
         self.width = bit_width
 
+    def __str__(self):
+        return "Int%u" % self.width
+
 
 Int8 = Integer(8)
 Int16 = Integer(16)
