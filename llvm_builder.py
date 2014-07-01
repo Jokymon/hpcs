@@ -80,6 +80,9 @@ class LLVMBuilder:
     def new_module(self, name):
         return LLVMModule(name)
 
+    def new_struct(self, name, struct):
+        return Type.struct([], name=name)
+
     def new_constant(self, signature, value):
         # TODO: use the right function of Constant based on signature
         return Constant.int(convert_type(signature), value)

@@ -16,6 +16,10 @@ class BuilderSpy:
     def new_module(self, *args, **kwargs):
         return self
 
+    def new_struct(self, name, struct):
+        self.actions.append("STRUCT: %s %s" % (name, struct))
+        return self
+
     def new_function(self, name, func_type):
         self.actions.append("FUNCTION: %s" % name)
         return self
@@ -91,3 +95,13 @@ a = 2 + 6
             "NEW_CONST: 2 (Int8)",
             "NEW_CONST: 6 (Int8)",
             "STORE: None -> 'a'"])
+
+    def testEmptyClass(self):
+        """
+class AClass:
+    pass
+        """
+        self.compiler.visit(self.tree)
+        self.builder_spy.assert_actions([
+            "FUNCTION: main",
+            "STRUCT: AClass {  }"])
