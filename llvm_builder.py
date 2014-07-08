@@ -21,7 +21,7 @@ class LLVMIRBuilder:
         self.builder = llvm_ir_builder
 
     def alloca(self, signature, name):
-        return self.builder.alloca(convert_type(signature), name)
+        return self.builder.alloca(convert_type(signature), name=name)
 
     def store(self, value, alloca):
         return self.builder.store(value, alloca)
