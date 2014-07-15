@@ -48,6 +48,11 @@ class CompilerVisitor(ast.NodeTransformer):
         print(module)
         return node
 
+    def visit_ClassDef(self, node):
+        # identifier name, expr* bases, stmt* body, expr* decorator_list
+        struct = self.code_builder.new_struct(node.name, Struct())
+        return node
+
     def visit_FunctionDef(self, node):
         # name, args, annotation, arg*, vararg, ...... body
         return node

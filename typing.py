@@ -40,6 +40,18 @@ class Function:
         return "func(%s) -> %s" % (arguments, self.return_type)
 
 
+class Struct:
+    def __init__(self):
+        self.type_list = []
+
+    def add_field(self, typ):
+        self.type_list.append(typ)
+
+    def __str__(self):
+        type_strs = map(str, self.type_list)
+        return "{ %s }" % ", ".join(type_strs)
+
+
 class TypingSystem(object):
     def __init__(self, platform):
         self.platform = platform

@@ -1,55 +1,107 @@
-import pytest
-import mock
 import ast
 import compiler
 import annotators
-import typing
-import llvm_builder
 
 
-class CompilerTestBase:
+class BuilderSpy:
+    def __init__(self):
+        self.actions = []
+
+    def get_actions(self):
+        return self.actions
+
+    def assert_actions(self, action_list):
+        assert self.actions == action_list
+
+    def new_module(self, *args, **kwargs):
+        return self
+
+    def new_struct(self, name, struct):
+        self.actions.append("STRUCT: %s %s" % (name, struct))
+        return self
+
+    def new_function(self, name, func_type):
+        self.actions.append("FUNCTION: %s" % name)
+        return self
+
+    def add_basic_block(self, *args, **kwargs):
+        return self
+
+    def get_irbuilder(self, *args, **kwargs):
+        return self
+
+    def alloca(self, alloca_type, name):
+        self.actions.append("ALLOCA: %s (%s)" % (name, alloca_type))
+        return "'%s'" % name
+
+    def store(self, value, alloca):
+        self.actions.append("STORE: %s -> %s" % (value, alloca))
+
+    def load(self, alloca, name):
+        self.actions.append("LOAD: %s -> %s" % (alloca, name))
+
+    def sext(self, value, ext_type, name):
+        pass
+
+    def add(self, *args, **kwargs):
+        pass
+
+    def new_constant(self, const_type, value):
+        self.actions.append("NEW_CONST: %s (%s)" % (value, const_type))
+        return value
+
+    def ret_void(self, *args, **kwargs):
+        pass
+
+    def verify(self, *args, **kwargs):
+        pass
+
+
+class TestByNewMethod:
     def setup_method(self, method):
-        self.builder_mock = mock.Mock(llvm_builder.LLVMBuilder)
-        self.module_mock = mock.Mock(llvm_builder.LLVMModule)
-        self.function_mock = mock.Mock(llvm_builder.LLVMFunction)
-        self.basicblock_mock = mock.Mock(llvm_builder.LLVMBasicBlock)
-        self.irbuilder_mock = mock.Mock(llvm_builder.LLVMIRBuilder)
-
-        self.builder_mock.new_module.return_value = self.module_mock
-        self.module_mock.new_function.return_value = self.function_mock
-        self.function_mock.add_basic_block.return_value = self.basicblock_mock
-        self.basicblock_mock.get_irbuilder.return_value = self.irbuilder_mock
-
         tree = ast.parse(method.__doc__)
         tree = annotators.TypeAnnotator().visit(tree)
         self.tree = tree
-        self.compiler = compiler.CompilerVisitor(self.builder_mock)
+        self.builder_spy = BuilderSpy()
+        self.compiler = compiler.CompilerVisitor(self.builder_spy)
 
-
-class TestAssignment(CompilerTestBase):
     def testEmptyModule(self):
         """
 # This is just an empty python module
         """
         self.compiler.visit(self.tree)
+        self.builder_spy.assert_actions([
+            "FUNCTION: main"])
 
-        self.builder_mock.new_module.assert_called_with("main")
-        self.module_mock.new_function.assert_called_with(
-            "main",
-            typing.Function(typing.Void(), []))
-        self.function_mock.add_basic_block.assert_called_with(
-            "entry")
-
-    def testAssignSingleInter(self):
+    def testAssignSingleInteger(self):
         """
 a = 2
         """
         self.compiler.visit(self.tree)
+        self.builder_spy.assert_actions([
+            "FUNCTION: main",
+            "ALLOCA: a (Int8)",
+            "NEW_CONST: 2 (Int8)",
+            "STORE: 2 -> 'a'"])
 
-        self.irbuilder_mock.alloca.assert_called_with(
-            typing.Int8, "a")
-        self.builder_mock.new_constant.assert_called_with(
-            typing.Int8, 2)
-        self.irbuilder_mock.store.assert_called_with(
-            self.builder_mock.new_constant.return_value,
-            self.irbuilder_mock.alloca.return_value)
+    def testAssignSimpleExpression(self):
+        """
+a = 2 + 6
+        """
+        self.compiler.visit(self.tree)
+        self.builder_spy.assert_actions([
+            "FUNCTION: main",
+            "ALLOCA: a (Int8)",
+            "NEW_CONST: 2 (Int8)",
+            "NEW_CONST: 6 (Int8)",
+            "STORE: None -> 'a'"])
+
+    def testEmptyClass(self):
+        """
+class AClass:
+    pass
+        """
+        self.compiler.visit(self.tree)
+        self.builder_spy.assert_actions([
+            "FUNCTION: main",
+            "STRUCT: AClass {  }"])
