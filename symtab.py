@@ -3,6 +3,9 @@ class Symbol(object):
         self.name = name
         self.typ = typ
 
+    def __str__(self):
+        return "Symbol '%s': %s" % (self.name, self.typ)
+
 
 class SymbolTable(object):
     def __init__(self, parent):
