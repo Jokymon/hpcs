@@ -4,10 +4,16 @@ class Void:
             return True
         return False
 
+    def __str__(self):
+        return "Void"
+
 
 class Integer:
     def __init__(self, bit_width):
         self.width = bit_width
+
+    def __str__(self):
+        return "Int%u" % self.width
 
 
 Int8 = Integer(8)
@@ -29,6 +35,10 @@ class Function:
             return False
         return True
 
+    def __str__(self):
+        arguments = str(self.signature)
+        return "func(%s) -> %s" % (arguments, self.return_type)
+
 
 class TypingSystem(object):
     def __init__(self, platform):
@@ -43,6 +53,7 @@ class TypingSystem(object):
             return Int32
 
     def get_type_for_id(self, id):
+        # TODO: error case handling in case id is not recognized
         if id in ["Int8", "Int16", "Int32"]:
             return eval(id)
         return None
