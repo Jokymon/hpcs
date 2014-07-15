@@ -55,6 +55,15 @@ def test1():
         assert self.ast.body[0].scope.find_symbol("b").typ == Int16
         assert self.ast.body[0].scope.find_symbol("c").typ == Int16
 
+    def testCallTypeAnnotation(self):
+        """
+def return_int8(a : Int8) -> Int8:
+    return 2*a
+
+b = return_int8(3)
+        """
+        assert self.ast.body[0].scope.find_symbol("b").typ == Int8
+
 
 class TestFailingTypeAnnotation:
     def testUnknownSymbol(self):

@@ -52,17 +52,30 @@ class TypeAnnotator(ast.NodeTransformer):
         node.scope = function_scope
 
         node.args = self.visit(node.args)
+        # TODO: The return type of the function can also be determined using
+        # the types of Return nodes
+        return_type = None
+        if node.returns is not None:
+            assert isinstance(node.returns, ast.Name), \
+                "Return annotation must be a type identifier"
+            return_type = self.typing.get_type_for_id(node.returns.id)
+        sym = symtab.Symbol(node.name)
+        sym.typ = typing.Function(return_type, node.args)
+        self.scope_stack[-2].add_symbol(sym) # TODO: Really ugly access of above scope; but is needed since for the body and the arguments we need to be inside the function scope
+
         node.body = [self.visit(child) for child in node.body]
         node.decorator_list = [self.visit(node.decorator_list)
                                for child in node.decorator_list]
-        # TODO: The return type of the function can also be determined using
-        # the types of Return nodes
-        if node.returns is not None:
-            node.returns = self.visit(node.returns)
-        else:
-            node.returns = None
         self.pop_scope()
 
+        return node
+
+    def visit_Call(self, node):
+        assert isinstance(node.func, ast.Name), \
+            "For call nodes only Names are supported"
+        sym = self.lookup_symbol(node.func.id)
+        assert isinstance(sym.typ, typing.Function)
+        node.typ = sym.typ.return_type
         return node
 
     def visit_Assign(self, node):
