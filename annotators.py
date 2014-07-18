@@ -12,8 +12,8 @@ import ast
 
 
 class TypeAnnotator(ast.NodeTransformer):
-    def __init__(self):
-        self.top_scope = symtab.SymbolTable(None)
+    def __init__(self, root_symbol_table=None):
+        self.top_scope = symtab.SymbolTable(root_symbol_table)
         self.typing = typing.TypingSystem(None)
 
     def push_scope(self, scope):

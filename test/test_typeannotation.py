@@ -1,5 +1,6 @@
 import pytest
 import ast
+import symtab
 from annotators import *
 from typing import *
 
@@ -63,6 +64,22 @@ def return_int8(a : Int8) -> Int8:
 b = return_int8(3)
         """
         assert self.ast.body[0].scope.find_symbol("b").typ == Int8
+
+
+class TestCustomTypeAnnotation:
+    def setup_method(self, method):
+        self.ast = ast.parse(method.__doc__)
+
+    def testBuiltins(self):
+        """
+a = max(53, 45)
+        """
+        builtins = symtab.SymbolTable(None)
+        builtins.add_symbol( symtab.Symbol("max", Function(Int32, [Int32, Int32])) )
+
+        annotator = TypeAnnotator(builtins)
+        self.ast = annotator.visit(self.ast)
+        assert self.ast.body[0].scope.find_symbol("a").typ ==Int32
 
 
 class TestFailingTypeAnnotation:
