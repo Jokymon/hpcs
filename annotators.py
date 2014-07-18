@@ -17,7 +17,6 @@ class TypeAnnotator(ast.NodeTransformer):
         self.typing = typing.TypingSystem(None)
 
     def push_scope(self, scope):
-        scope.parent = self.top_scope
         self.top_scope = scope
 
     def pop_scope(self):
@@ -40,7 +39,7 @@ class TypeAnnotator(ast.NodeTransformer):
         return node
 
     def visit_Module(self, node):
-        scope = symtab.SymbolTable(None)
+        scope = symtab.SymbolTable(self.top_scope)
         node.scope = scope
         self.push_scope(scope)
         node.body = [self.visit(stmt) for stmt in node.body]
@@ -48,7 +47,7 @@ class TypeAnnotator(ast.NodeTransformer):
         return node
 
     def visit_FunctionDef(self, node):
-        function_scope = symtab.SymbolTable(self.top_scope) # TODO: here init and the following push_socpe are duplicating functionality
+        function_scope = symtab.SymbolTable(self.top_scope)
         self.push_scope(function_scope)
         node.scope = function_scope
 
