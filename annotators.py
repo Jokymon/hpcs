@@ -13,20 +13,21 @@ import ast
 
 class TypeAnnotator(ast.NodeTransformer):
     def __init__(self):
-        self.scope_stack = []
+        self.top_scope = symtab.SymbolTable(None)
         self.typing = typing.TypingSystem(None)
 
     def push_scope(self, scope):
-        self.scope_stack.append(scope)
+        scope.parent = self.top_scope
+        self.top_scope = scope
 
     def pop_scope(self):
-        self.scope_stack.pop()
+        self.top_scope = self.top_scope.parent
 
     def lookup_symbol(self, id):
-        return self.scope_stack[-1].find_symbol(id)
+        return self.top_scope.find_symbol(id)
 
     def add_symbol_to_top_scope(self, symbol):
-        self.scope_stack[-1].add_symbol(symbol)
+        self.top_scope.add_symbol(symbol)
 
     def visit_arguments(self, node):
         for arg in node.args:
@@ -47,7 +48,7 @@ class TypeAnnotator(ast.NodeTransformer):
         return node
 
     def visit_FunctionDef(self, node):
-        function_scope = symtab.SymbolTable(self.scope_stack[-1])
+        function_scope = symtab.SymbolTable(self.top_scope) # TODO: here init and the following push_socpe are duplicating functionality
         self.push_scope(function_scope)
         node.scope = function_scope
 
@@ -61,7 +62,7 @@ class TypeAnnotator(ast.NodeTransformer):
             return_type = self.typing.get_type_for_id(node.returns.id)
         sym = symtab.Symbol(node.name)
         sym.typ = typing.Function(return_type, node.args)
-        self.scope_stack[-2].add_symbol(sym) # TODO: Really ugly access of above scope; but is needed since for the body and the arguments we need to be inside the function scope
+        self.top_scope.parent.add_symbol(sym) # TODO: Really ugly access of above scope; but is needed since for the body and the arguments we need to be inside the function scope
 
         node.body = [self.visit(child) for child in node.body]
         node.decorator_list = [self.visit(node.decorator_list)
@@ -80,7 +81,7 @@ class TypeAnnotator(ast.NodeTransformer):
 
     def visit_Assign(self, node):
         # targets* = value (expr)
-        node.scope = self.scope_stack[-1]
+        node.scope = self.top_scope
         node.value = self.visit(node.value)
         sym = self.lookup_symbol(node.targets[0].id)
         if sym is None:
