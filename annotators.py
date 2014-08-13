@@ -9,6 +9,7 @@
 import typing
 import symtab
 import ast
+from errors import *
 
 
 class TypeAnnotator(ast.NodeTransformer):
@@ -71,10 +72,15 @@ class TypeAnnotator(ast.NodeTransformer):
         return node
 
     def visit_Call(self, node):
-        assert isinstance(node.func, ast.Name), \
-            "For call nodes only Names are supported"
+        if not isinstance(node.func, ast.Name):
+            raise CompilationError(
+                "Call of a function must be done through an explicit name",
+                "<file>", node.lineno, node.col_offset)
         sym = self.lookup_symbol(node.func.id)
-        assert isinstance(sym.typ, typing.Function)
+        if not isinstance(sym.typ, typing.Function):
+            raise CompilationError("Can't call non-function symbol '%s'" %
+                                   sym.name, "<file>", node.lineno,
+                                   node.col_offset)
         node.typ = sym.typ.return_type
         return node
 
