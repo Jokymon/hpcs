@@ -1,6 +1,7 @@
 import ast
 import compiler
 import annotators
+import hpcs_builtins
 
 
 class BuilderSpy:
@@ -105,3 +106,17 @@ class AClass:
         self.builder_spy.assert_actions([
             "FUNCTION: main",
             "STRUCT: AClass {  }"])
+
+
+class TestBuiltins:
+    def setup_method(self, method):
+        tree = ast.parse(method.__doc__)
+        tree = annotators.TypeAnnotator(hpcs_builtins.create_builtin_scope()).visit(tree)
+        self.tree = tree
+        self.builder_spy = BuilderSpy()
+        self.compiler = compiler.CompilerVisitor(self.builder_spy)
+
+    def testPlacedArray(self):
+        """
+a = PlacedInt8Array(100, 0x1000)
+        """

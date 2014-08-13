@@ -40,6 +40,19 @@ class Function:
         return "func(%s) -> %s" % (arguments, self.return_type)
 
 
+class Pointer:
+    def __init__(self, pointee_type):
+        self.pointee_type = pointee_type
+
+    def __eq__(self, other):
+        if not isinstance(other, Pointer):
+            return False
+        return self.pointee_type == other.pointee_type
+
+    def __str__(self):
+        return "ptr(%s)" % self.pointee_type
+
+
 class Struct:
     def __init__(self):
         self.type_list = []

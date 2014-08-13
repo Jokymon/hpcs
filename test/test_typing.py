@@ -46,6 +46,14 @@ class TestTypeEquality:
         assert func2 != func3
         assert func3 != func1
 
+    def testPointerEquality(self):
+        i8ptr_1 = Pointer(Int8)
+        i8ptr_2 = Pointer(Int8)
+        i16ptr = Pointer(Int16)
+
+        assert i8ptr_1 == i8ptr_2
+        assert i8ptr_1 != i16ptr
+
 
 @pytest.fixture
 def typesystem():
