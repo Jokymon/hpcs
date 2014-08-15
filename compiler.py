@@ -65,6 +65,14 @@ class CompilerVisitor(ast.NodeTransformer):
                            node.scope.find_symbol(lhs).alloca)
         return node
 
+    def visit_Call(self, node):
+        function_name = node.func.id
+        function = node.scope.find_symbol(function_name)
+        if hasattr(function, "generator"):
+            return function.generator(self, node, self.builder)
+        else:
+            return node
+
     def visit_BinOp(self, node):
         # left, op, right
         node.left = self.visit(node.left)

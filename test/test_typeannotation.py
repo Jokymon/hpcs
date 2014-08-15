@@ -79,7 +79,7 @@ a = max(53, 45)
 
         annotator = TypeAnnotator(builtins)
         self.ast = annotator.visit(self.ast)
-        assert self.ast.body[0].scope.find_symbol("a").typ ==Int32
+        assert self.ast.body[0].scope.find_symbol("a").typ == Int32
 
 
 class TestFailingTypeAnnotation:

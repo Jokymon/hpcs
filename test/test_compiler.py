@@ -1,6 +1,7 @@
 import ast
 import compiler
 import annotators
+import typing
 import hpcs_builtins
 
 
@@ -43,6 +44,9 @@ class BuilderSpy:
 
     def sext(self, value, ext_type, name):
         pass
+
+    def inttoptr(self, value, target_type):
+        self.actions.append("INTTOPTR: %u -> %s" % (value, target_type))
 
     def add(self, *args, **kwargs):
         pass
@@ -111,7 +115,8 @@ class AClass:
 class TestBuiltins:
     def setup_method(self, method):
         tree = ast.parse(method.__doc__)
-        tree = annotators.TypeAnnotator(hpcs_builtins.create_builtin_scope()).visit(tree)
+        tree = annotators.TypeAnnotator(
+            hpcs_builtins.create_builtin_scope()).visit(tree)
         self.tree = tree
         self.builder_spy = BuilderSpy()
         self.compiler = compiler.CompilerVisitor(self.builder_spy)
@@ -120,3 +125,14 @@ class TestBuiltins:
         """
 a = PlacedInt8Array(100, 0x1000)
         """
+        self.compiler.visit(self.tree)
+        assert self.tree.body[0].scope.find_symbol("a").typ == \
+            typing.Pointer(typing.Int8)
+        self.builder_spy.assert_actions([
+            "FUNCTION: main",
+            "ALLOCA: a (ptr(Int8))",
+            "NEW_CONST: 100 (Int8)",
+            "NEW_CONST: 4096 (Int16)",
+            "INTTOPTR: 4096 -> ptr(Int8)",
+            "STORE: None -> 'a'"
+            ])

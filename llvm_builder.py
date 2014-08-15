@@ -7,6 +7,8 @@ def convert_type(generic_type):
         return Type.void()
     elif isinstance(generic_type, typing.Integer):
         return Type.int(generic_type.width)
+    elif isinstance(generic_type, typing.Pointer):
+        return Type.pointer(convert_type(generic_type.pointee_type))
     elif isinstance(generic_type, typing.Function):
         return_type = convert_type(generic_type.return_type)
         signature = [convert_type(t) for t in generic_type.signature]
@@ -35,6 +37,9 @@ class LLVMIRBuilder:
     def sext(self, value, signature, name):
         return self.builder.sext(value, convert_type(signature), name)
 
+    def inttoptr(self, value, target_type):
+        return self.builder.inttoptr(value, convert_type(target_type))
+
     def ret_void(self):
         return self.builder.ret_void()
 
@@ -46,7 +51,6 @@ class LLVMBasicBlock:
     def get_irbuilder(self):
         builder = Builder.new(self.basic_block)
         return LLVMIRBuilder(builder)
-        #return Builder.new(self.basic_block)
 
 
 class LLVMFunction:

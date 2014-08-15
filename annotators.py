@@ -81,7 +81,9 @@ class TypeAnnotator(ast.NodeTransformer):
             raise CompilationError("Can't call non-function symbol '%s'" %
                                    sym.name, "<file>", node.lineno,
                                    node.col_offset)
+        node.args = [self.visit(arg) for arg in node.args]
         node.typ = sym.typ.return_type
+        node.scope = self.top_scope
         return node
 
     def visit_Assign(self, node):
