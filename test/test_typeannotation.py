@@ -56,6 +56,12 @@ def test1():
         assert self.ast.body[0].scope.find_symbol("b").typ == Int16
         assert self.ast.body[0].scope.find_symbol("c").typ == Int16
 
+    def testStringAssignment(self):
+        """
+s = "Some string"
+        """
+        assert self.ast.body[0].scope.find_symbol("s").typ == String
+
     def testCallTypeAnnotation(self):
         """
 def return_int8(a : Int8) -> Int8:

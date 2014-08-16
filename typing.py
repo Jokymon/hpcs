@@ -21,6 +21,11 @@ Int16 = Integer(16)
 Int32 = Integer(32)
 
 
+class String:
+    def __str__(self):
+        return "String"
+
+
 class Function:
     def __init__(self, return_type, signature):
         self.return_type = return_type

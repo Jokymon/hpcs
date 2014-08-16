@@ -113,6 +113,10 @@ class TypeAnnotator(ast.NodeTransformer):
         node.typ = self.typing.get_type_from_number(node.n)
         return node
 
+    def visit_Str(self, node):
+        node.typ = typing.String
+        return node
+
     def visit_Name(self, node):
         if not hasattr(node, "typ"):
             sym = self.lookup_symbol(node.id)
