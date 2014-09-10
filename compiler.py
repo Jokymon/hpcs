@@ -45,7 +45,7 @@ class CompilerVisitor(ast.NodeTransformer):
 
         self.builder.ret_void()
         module.verify()
-        print(module)
+        node.module = module
         return node
 
     def visit_ClassDef(self, node):
