@@ -34,7 +34,7 @@ class CompilerVisitor(ast.NodeTransformer):
         module = self.code_builder.new_module('main')
         fun = module.new_function("main", Function(Void(), []))
         self.bb = fun.add_basic_block("entry")
-        self.builder = self.bb.get_irbuilder()
+        self.builder = self.code_builder.new_irbuilder(self.bb)
 
         for sym in node.scope.table.values():
             alloca = self.builder.alloca(sym.typ, sym.name)

@@ -19,8 +19,8 @@ def convert_type(generic_type):
 
 class LLVMIRBuilder:
     # TODO: Do we have to create a wrapper for alloca's as well?
-    def __init__(self, llvm_ir_builder):
-        self.builder = llvm_ir_builder
+    def __init__(self, llvm_basic_block):
+        self.builder = Builder.new(llvm_basic_block.basic_block)
 
     def alloca(self, signature, name):
         return self.builder.alloca(convert_type(signature), name=name)
@@ -47,10 +47,6 @@ class LLVMIRBuilder:
 class LLVMBasicBlock:
     def __init__(self, llvm_basic_block):
         self.basic_block = llvm_basic_block
-
-    def get_irbuilder(self):
-        builder = Builder.new(self.basic_block)
-        return LLVMIRBuilder(builder)
 
 
 class LLVMFunction:
@@ -83,6 +79,9 @@ class LLVMBuilder:
 
     def new_module(self, name):
         return LLVMModule(name)
+
+    def new_irbuilder(self, llvm_basic_block):
+        return LLVMIRBuilder(llvm_basic_block)
 
     def new_struct(self, name, struct):
         return Type.struct([], name=name)

@@ -21,6 +21,9 @@ class BuilderSpy:
     def new_module(self, *args, **kwargs):
         return self
 
+    def new_irbuilder(self, basic_block):
+        return self
+
     def new_struct(self, name, struct):
         self.append_action("STRUCT: %s %s" % (name, struct))
         return self
