@@ -9,6 +9,9 @@ class BuilderSpy:
     def __init__(self):
         self.actions = []
 
+    def append_action(self, action):
+        self.actions[-1].append(action)
+
     def get_actions(self):
         return self.actions
 
@@ -19,7 +22,7 @@ class BuilderSpy:
         return self
 
     def new_struct(self, name, struct):
-        self.actions.append("STRUCT: %s %s" % (name, struct))
+        self.append_action("STRUCT: %s %s" % (name, struct))
         return self
 
     def new_function(self, name, func_type):
@@ -27,32 +30,33 @@ class BuilderSpy:
         return self
 
     def add_basic_block(self, *args, **kwargs):
+        self.actions.append([])
         return self
 
     def get_irbuilder(self, *args, **kwargs):
         return self
 
     def alloca(self, alloca_type, name):
-        self.actions.append("ALLOCA: %s (%s)" % (name, alloca_type))
+        self.append_action("ALLOCA: %s (%s)" % (name, alloca_type))
         return "'%s'" % name
 
     def store(self, value, alloca):
-        self.actions.append("STORE: %s -> %s" % (value, alloca))
+        self.append_action("STORE: %s -> %s" % (value, alloca))
 
     def load(self, alloca, name):
-        self.actions.append("LOAD: %s -> %s" % (alloca, name))
+        self.append_action("LOAD: %s -> %s" % (alloca, name))
 
     def sext(self, value, ext_type, name):
         pass
 
     def inttoptr(self, value, target_type):
-        self.actions.append("INTTOPTR: %u -> %s" % (value, target_type))
+        self.append_action("INTTOPTR: %u -> %s" % (value, target_type))
 
     def add(self, *args, **kwargs):
         pass
 
     def new_constant(self, const_type, value):
-        self.actions.append("NEW_CONST: %s (%s)" % (value, const_type))
+        self.append_action("NEW_CONST: %s (%s)" % (value, const_type))
         return value
 
     def ret_void(self, *args, **kwargs):
@@ -76,7 +80,8 @@ class TestByNewMethod:
         """
         self.compiler.visit(self.tree)
         self.builder_spy.assert_actions([
-            "FUNCTION: main"])
+            "FUNCTION: main", []
+            ])
 
     def testAssignSingleInteger(self):
         """
@@ -84,10 +89,12 @@ a = 2
         """
         self.compiler.visit(self.tree)
         self.builder_spy.assert_actions([
-            "FUNCTION: main",
-            "ALLOCA: a (Int8)",
-            "NEW_CONST: 2 (Int8)",
-            "STORE: 2 -> 'a'"])
+            "FUNCTION: main", [
+                "ALLOCA: a (Int8)",
+                "NEW_CONST: 2 (Int8)",
+                "STORE: 2 -> 'a'"
+                ]
+            ])
 
     def testAssignSimpleExpression(self):
         """
@@ -95,11 +102,13 @@ a = 2 + 6
         """
         self.compiler.visit(self.tree)
         self.builder_spy.assert_actions([
-            "FUNCTION: main",
-            "ALLOCA: a (Int8)",
-            "NEW_CONST: 2 (Int8)",
-            "NEW_CONST: 6 (Int8)",
-            "STORE: None -> 'a'"])
+            "FUNCTION: main", [
+                "ALLOCA: a (Int8)",
+                "NEW_CONST: 2 (Int8)",
+                "NEW_CONST: 6 (Int8)",
+                "STORE: None -> 'a'"
+                ]
+            ])
 
     def testEmptyClass(self):
         """
@@ -108,8 +117,10 @@ class AClass:
         """
         self.compiler.visit(self.tree)
         self.builder_spy.assert_actions([
-            "FUNCTION: main",
-            "STRUCT: AClass {  }"])
+            "FUNCTION: main", [
+                "STRUCT: AClass {  }"
+                ]
+            ])
 
 
 class TestBuiltins:
@@ -129,10 +140,11 @@ a = PlacedInt8Array(100, 0x1000)
         assert self.tree.body[0].scope.find_symbol("a").typ == \
             typing.Pointer(typing.Int8)
         self.builder_spy.assert_actions([
-            "FUNCTION: main",
-            "ALLOCA: a (ptr(Int8))",
-            "NEW_CONST: 100 (Int8)",
-            "NEW_CONST: 4096 (Int16)",
-            "INTTOPTR: 4096 -> ptr(Int8)",
-            "STORE: None -> 'a'"
+            "FUNCTION: main", [
+                "ALLOCA: a (ptr(Int8))",
+                "NEW_CONST: 100 (Int8)",
+                "NEW_CONST: 4096 (Int16)",
+                "INTTOPTR: 4096 -> ptr(Int8)",
+                "STORE: None -> 'a'"
+                ]
             ])
