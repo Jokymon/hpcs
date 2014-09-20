@@ -17,6 +17,12 @@ class TestTypeEquality:
         assert v != Int8
         assert v != Int16
 
+    def testBoolEquality(self):
+        b1 = Bool()
+        b2 = Bool()
+
+        assert b1 == b2
+
     def testIntegerEquality(self):
         i8 = Int8
         i16 = Int16

@@ -8,6 +8,16 @@ class Void:
         return "Void"
 
 
+class Bool:
+    def __eq__(self, other):
+        if isinstance(other, Bool):
+            return True
+        return False
+
+    def __str__(self):
+        return "Bool"
+
+
 class Integer:
     def __init__(self, bit_width):
         self.width = bit_width
