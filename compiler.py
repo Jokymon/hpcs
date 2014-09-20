@@ -3,6 +3,16 @@ import llvm_builder
 from typing import *
 
 
+compare_op = {
+    ast.Eq: 'EQ',
+    ast.NotEq: 'NEQ',
+    ast.Lt: 'LT',
+    ast.LtE: 'LTE',
+    ast.Gt: 'GT',
+    ast.GtE: 'GTE',
+}
+
+
 class ConstraintChecker(ast.NodeVisitor):
     def visit_FunctionDef(self, node):
         assert node.decorator_list == [], "Can't handle decorators"
@@ -84,6 +94,23 @@ class CompilerVisitor(ast.NodeTransformer):
         elif node.right.typ.width > node.left.typ.width:
             left = self.builder.sext(left, node.right.typ, 'left_extended')
         node.llvm_value = self.builder.add(left, right, 'addtmp')
+        return node
+
+    def visit_Compare(self, node):
+        # left, ops*, comparators*
+        node.left = self.visit(node.left)
+        node.ops = [self.visit(op) for op in node.ops]
+        node.comparators = [self.visit(comp) for comp in node.comparators]
+
+        # TODO: We currently only handle one single comparator
+        left = node.left.llvm_value
+        right = node.comparators[0].llvm_value
+        if node.left.typ.width > node.comparators[0].typ.width:
+            right = self.builder.sext(right, node.left.typ, 'right_extended')
+        elif node.comparators[0].typ.width > node.left.typ.width:
+            left = self.builder.sext(left, node.comparators[0].typ, 'left_extended')
+        operator = compare_op[node.ops[0].__class__]
+        node.llvm_value = self.builder.compare(left, right, operator, 'comptmp')
         return node
 
     def visit_Name(self, node):

@@ -2,9 +2,21 @@ from llvm.core import *
 import typing
 
 
+compare_signed_int = {
+    'EQ': ICMP_EQ,
+    'NEQ': ICMP_NE,
+    'LT': ICMP_SLT,
+    'LTE': ICMP_SLE,
+    'GT': ICMP_SGT,
+    'GTE': ICMP_SGE,
+}
+
+
 def convert_type(generic_type):
     if isinstance(generic_type, typing.Void):
         return Type.void()
+    elif isinstance(generic_type, typing.Bool):
+        return Type.int(1)
     elif isinstance(generic_type, typing.Integer):
         return Type.int(generic_type.width)
     elif isinstance(generic_type, typing.Pointer):
@@ -33,6 +45,10 @@ class LLVMIRBuilder:
 
     def add(self, left, right, name):
         return self.builder.add(left, right, name)
+
+    def compare(self, left, right, operator, name):
+        llvm_operator = compare_signed_int[operator]
+        return self.builder.icmp(llvm_operator, left, right, name)
 
     def sext(self, value, signature, name):
         return self.builder.sext(value, convert_type(signature), name)

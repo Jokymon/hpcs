@@ -1,3 +1,6 @@
+import collections
+
+
 class Symbol(object):
     def __init__(self, name, typ=None):
         self.name = name
@@ -10,7 +13,7 @@ class Symbol(object):
 class SymbolTable(object):
     def __init__(self, parent):
         self.parent = parent
-        self.table = {}
+        self.table = collections.OrderedDict()
 
     def find_symbol(self, name):
         if name in self.table:

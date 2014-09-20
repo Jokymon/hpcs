@@ -109,6 +109,13 @@ class TypeAnnotator(ast.NodeTransformer):
             node.op)
         return node
 
+    def visit_Compare(self, node):
+        node.left = self.visit(node.left)
+        node.ops = [self.visit(op) for op in node.ops]
+        node.comparators = [self.visit(comp) for comp in node.comparators]
+        node.typ = typing.Bool()
+        return node
+
     def visit_Num(self, node):
         node.typ = self.typing.get_type_from_number(node.n)
         return node

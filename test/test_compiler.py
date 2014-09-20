@@ -52,15 +52,21 @@ class BuilderSpy:
 
     def load(self, alloca, name):
         self.append_action("LOAD: %s -> %s" % (alloca, name))
+        return "%s" % name
 
     def sext(self, value, ext_type, name):
-        pass
+        self.append_action("SEXT: %s -> %s (%s)" % (value, name, ext_type))
+        return "%s" % name
 
     def inttoptr(self, value, target_type):
         self.append_action("INTTOPTR: %u -> %s" % (value, target_type))
 
     def add(self, left, right, name):
         self.append_action("ADD: %s + %s -> '%s'" % (left, right, name))
+        return "'%s'" % name
+
+    def compare(self, left, right, operator, name):
+        self.append_action("COMP_%s: %s, %s -> '%s'" % (operator, left, right, name))
         return "'%s'" % name
 
     def new_constant(self, const_type, value):
@@ -118,6 +124,45 @@ a = 2 + 6
                 "STORE: 'addtmp' -> 'a'"
                 ]
             ])
+
+    def testComparison(self):
+        """
+a = 2 < 35
+        """
+        self.compiler.visit(self.tree)
+        self.builder_spy.assert_actions([
+            "FUNCTION: main", [
+                "ALLOCA: a (Bool)",
+                "NEW_CONST: 2 (Int8)",
+                "NEW_CONST: 35 (Int8)",
+                "COMP_LT: 2, 35 -> 'comptmp'",
+                "STORE: 'comptmp' -> 'a'"
+                ]
+            ])
+
+    def testComparisonDifferentTypes(self):
+        """
+a = 4
+b = 23234
+c = a < b
+        """
+        self.compiler.visit(self.tree)
+        self.builder_spy.assert_actions(ModuleSpy([
+            "FUNCTION: main", [
+                "ALLOCA: a (Int8)",
+                "ALLOCA: b (Int16)",
+                "ALLOCA: c (Bool)",
+                "NEW_CONST: 4 (Int8)",
+                "STORE: 4 -> 'a'",
+                "NEW_CONST: 23234 (Int16)",
+                "STORE: 23234 -> 'b'",
+                "LOAD: 'a' -> a",
+                "LOAD: 'b' -> b",
+                "SEXT: a -> left_extended (Int16)",
+                "COMP_LT: left_extended, b -> 'comptmp'",
+                "STORE: 'comptmp' -> 'c'"
+                ]
+            ]))
 
     def testEmptyClass(self):
         """

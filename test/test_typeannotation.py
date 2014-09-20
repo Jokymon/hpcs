@@ -56,6 +56,12 @@ def test1():
         assert self.ast.body[0].scope.find_symbol("b").typ == Int16
         assert self.ast.body[0].scope.find_symbol("c").typ == Int16
 
+    def testBinaryComparison(self):
+        """
+a = 34 < 59
+        """
+        assert self.ast.scope.find_symbol("a").typ == Bool()
+
     def testStringAssignment(self):
         """
 s = "Some string"
