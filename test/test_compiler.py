@@ -55,8 +55,9 @@ class BuilderSpy:
     def inttoptr(self, value, target_type):
         self.append_action("INTTOPTR: %u -> %s" % (value, target_type))
 
-    def add(self, *args, **kwargs):
-        pass
+    def add(self, left, right, name):
+        self.append_action("ADD: %s + %s -> '%s'" % (left, right, name))
+        return "'%s'" % name
 
     def new_constant(self, const_type, value):
         self.append_action("NEW_CONST: %s (%s)" % (value, const_type))
@@ -109,7 +110,8 @@ a = 2 + 6
                 "ALLOCA: a (Int8)",
                 "NEW_CONST: 2 (Int8)",
                 "NEW_CONST: 6 (Int8)",
-                "STORE: None -> 'a'"
+                "ADD: 2 + 6 -> 'addtmp'",
+                "STORE: 'addtmp' -> 'a'"
                 ]
             ])
 
