@@ -5,6 +5,10 @@ import typing
 import hpcs_builtins
 
 
+class ModuleSpy(list):
+    pass
+
+
 class BuilderSpy:
     def __init__(self):
         self.actions = []
