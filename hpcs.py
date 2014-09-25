@@ -24,6 +24,9 @@ def compile_source(source_file_name):
 
 def main():
     parser = OptionParser()
+    parser.add_option("--llvm",
+                      action="store_true", dest="llvm_only", default=False,
+                      help="only create LLVM byte code output")
     parser.add_option("-S",
                       action="store_true", dest="compile_only", default=False,
                       help="only compile but don't assemble the source")
@@ -41,13 +44,18 @@ def main():
 
     if options.output_filename == "" or options.output_filename is None:
         (filebasename, suffix) = os.path.splitext(file_name)
-        if options.compile_only:
+        if options.llvm_only:
+            options.output_filename = filebasename+".ll"
+        elif options.compile_only:
             options.output_filename = filebasename+".S"
         else:
-                options.output_filename = filebasename+".o"
+            options.output_filename = filebasename+".o"
 
     with open(options.output_filename, "wb") as target_file:
-        if options.compile_only:
+        if options.llvm_only:
+            code = str(module)
+            target_file.write(code.encode())
+        elif options.compile_only:
             target_file.write(tm.emit_assembly(module).encode())
         else:
             target_file.write(tm.emit_object(module))
