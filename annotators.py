@@ -90,6 +90,10 @@ class TypeAnnotator(ast.NodeTransformer):
         # targets* = value (expr)
         node.scope = self.top_scope
         node.value = self.visit(node.value)
+        if not hasattr(node.value, "typ"):
+            raise KeyError("Can't determine type of '%s' @%u:%u" %
+                           (node.value.id, node.value.lineno, node.value.col_offset))
+        node.targets = [self.visit(target) for target in node.targets]
         sym = self.lookup_symbol(node.targets[0].id)
         if sym is None:
             sym = symtab.Symbol(node.targets[0].id)
@@ -129,8 +133,5 @@ class TypeAnnotator(ast.NodeTransformer):
             sym = self.lookup_symbol(node.id)
             if hasattr(sym, "typ") and sym.typ is not None:
                 node.typ = sym.typ
-            else:
-                raise KeyError("Can't determine type of '%s' @%u:%u" %
-                               (node.id, node.lineno, node.col_offset))
             node.sym = sym
         return node
