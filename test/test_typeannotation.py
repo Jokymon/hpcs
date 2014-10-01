@@ -1,6 +1,7 @@
 import pytest
 import ast
 import symtab
+import hpcs_builtins
 from annotators import *
 from typing import *
 
@@ -94,10 +95,35 @@ a = max(53, 45)
         assert self.ast.body[0].scope.find_symbol("a").typ == Int32
 
 
+class TestArray:
+    def setup_method(self, method):
+        self.annotator = TypeAnnotator(hpcs_builtins.create_builtin_scope())
+        self.ast = ast.parse(method.__doc__)
+        self.ast = self.annotator.visit(self.ast)
+
+    def testPointerAccess(self):
+        """
+a = PlacedInt8Array(100, 0x0)
+a[3] = 42
+        """
+        assert self.ast.body[1].targets[0].typ == Int8
+        assert self.ast.body[0].scope.find_symbol("a").typ == Pointer(Int8)
+
+
 class TestFailingTypeAnnotation:
     def testUnknownSymbol(self):
         annotator = TypeAnnotator()
         an_ast = ast.parse("a = b")
 
         with pytest.raises(KeyError):
+            an_ast = annotator.visit(an_ast)
+
+    def testIllegalAssignmentToArrayElement(self):
+        annotator = TypeAnnotator(hpcs_builtins.create_builtin_scope())
+        an_ast = ast.parse("""
+a = PlacedInt8Array(100, 0x0)
+a[3] = "SomeString"
+        """)
+
+        with pytest.raises(TypeError):
             an_ast = annotator.visit(an_ast)

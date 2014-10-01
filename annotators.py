@@ -92,14 +92,22 @@ class TypeAnnotator(ast.NodeTransformer):
         node.value = self.visit(node.value)
         if not hasattr(node.value, "typ"):
             raise KeyError("Can't determine type of '%s' @%u:%u" %
-                           (node.value.id, node.value.lineno, node.value.col_offset))
+                           (node.value.id,
+                            node.value.lineno, node.value.col_offset))
         node.targets = [self.visit(target) for target in node.targets]
-        sym = self.lookup_symbol(node.targets[0].id)
-        if sym is None:
-            sym = symtab.Symbol(node.targets[0].id)
-            sym.typ = node.value.typ
-            self.add_symbol_to_top_scope(sym)
-        node.targets[0].typ = node.value.typ
+        target = node.targets[0]
+        if isinstance(target, ast.Name):
+            sym = self.lookup_symbol(node.targets[0].id)
+            if sym is None:
+                sym = symtab.Symbol(node.targets[0].id)
+                sym.typ = node.value.typ
+                self.add_symbol_to_top_scope(sym)
+            node.targets[0].typ = node.value.typ
+        elif isinstance(target, ast.Subscript):
+            if target.typ != node.value.typ:
+                raise TypeError("Cannot assign %s to %s @%u:%u" %
+                                (node.value.typ, target.typ,
+                                 node.lineno, node.col_offset))
         return node
 
     def visit_BinOp(self, node):
@@ -118,6 +126,17 @@ class TypeAnnotator(ast.NodeTransformer):
         node.ops = [self.visit(op) for op in node.ops]
         node.comparators = [self.visit(comp) for comp in node.comparators]
         node.typ = typing.Bool()
+        return node
+
+    def visit_Subscript(self, node):
+        # value, slice, ctx
+        node.value = self.visit(node.value)
+        node.slice = self.visit(node.slice)
+        if not isinstance(node.value.typ, typing.Pointer):
+            raise TypeError(
+                "Expecting a pointer value. Can't dereference value @%u:%u" %
+                (node.lineno, node.col_offset))
+        node.typ = node.value.typ.pointee_type
         return node
 
     def visit_Num(self, node):
