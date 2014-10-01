@@ -108,9 +108,11 @@ class CompilerVisitor(ast.NodeTransformer):
         if node.left.typ.width > node.comparators[0].typ.width:
             right = self.builder.sext(right, node.left.typ, 'right_extended')
         elif node.comparators[0].typ.width > node.left.typ.width:
-            left = self.builder.sext(left, node.comparators[0].typ, 'left_extended')
+            left = self.builder.sext(left, node.comparators[0].typ,
+                                     'left_extended')
         operator = compare_op[node.ops[0].__class__]
-        node.llvm_value = self.builder.compare(left, right, operator, 'comptmp')
+        node.llvm_value = self.builder.compare(left, right, operator,
+                                               'comptmp')
         return node
 
     def visit_Name(self, node):

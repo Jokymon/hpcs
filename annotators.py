@@ -62,8 +62,10 @@ class TypeAnnotator(ast.NodeTransformer):
             return_type = self.typing.get_type_for_id(node.returns.id)
         sym = symtab.Symbol(node.name)
         sym.typ = typing.Function(return_type, node.args)
-        self.top_scope.parent.add_symbol(sym) # TODO: Really ugly access of above scope; but is needed since for the body and the arguments we need to be inside the function scope
-
+        # TODO: The following line is a really ugly access of above scope; but
+        # is needed since for the body and the arguments we need to be inside
+        # the function scope
+        self.top_scope.parent.add_symbol(sym)
         node.body = [self.visit(child) for child in node.body]
         node.decorator_list = [self.visit(node.decorator_list)
                                for child in node.decorator_list]

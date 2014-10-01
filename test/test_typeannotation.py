@@ -88,7 +88,8 @@ class TestCustomTypeAnnotation:
 a = max(53, 45)
         """
         builtins = symtab.SymbolTable(None)
-        builtins.add_symbol( symtab.Symbol("max", Function(Int32, [Int32, Int32])) )
+        builtins.add_symbol(symtab.Symbol("max",
+                                          Function(Int32, [Int32, Int32])))
 
         annotator = TypeAnnotator(builtins)
         self.ast = annotator.visit(self.ast)

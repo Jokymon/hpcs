@@ -66,7 +66,8 @@ class BuilderSpy:
         return "'%s'" % name
 
     def compare(self, left, right, operator, name):
-        self.append_action("COMP_%s: %s, %s -> '%s'" % (operator, left, right, name))
+        self.append_action("COMP_%s: %s, %s -> '%s'" %
+                           (operator, left, right, name))
         return "'%s'" % name
 
     def new_constant(self, const_type, value):
