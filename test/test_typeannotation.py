@@ -67,7 +67,7 @@ a = 34 < 59
         """
 s = "Some string"
         """
-        assert self.ast.body[0].scope.find_symbol("s").typ == String
+        assert self.ast.body[0].scope.find_symbol("s").typ == String()
 
     def testCallTypeAnnotation(self):
         """

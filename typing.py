@@ -32,6 +32,11 @@ Int32 = Integer(32)
 
 
 class String:
+    def __eq__(self, other):
+        if isinstance(other, String):
+            return True
+        return False
+
     def __str__(self):
         return "String"
 

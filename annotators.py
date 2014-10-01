@@ -144,7 +144,7 @@ class TypeAnnotator(ast.NodeTransformer):
         return node
 
     def visit_Str(self, node):
-        node.typ = typing.String
+        node.typ = typing.String()
         return node
 
     def visit_Name(self, node):
