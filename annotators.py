@@ -12,9 +12,16 @@ import ast
 from errors import *
 
 
+# "Enum" for loading context
+NoContext = 0
+ValueContext = 1
+AddressContext = 2
+
+
 class TypeAnnotator(ast.NodeTransformer):
     def __init__(self, root_symbol_table=None):
         self.top_scope = symtab.SymbolTable(root_symbol_table)
+        self.loading_context = NoContext
         self.typing = typing.TypingSystem(None)
 
     def push_scope(self, scope):
@@ -113,6 +120,8 @@ class TypeAnnotator(ast.NodeTransformer):
         return node
 
     def visit_BinOp(self, node):
+        previous_context = self.loading_context
+        self.loading_context = ValueContext
         node.left = self.visit(node.left)
         node.op = self.visit(node.op)
         node.right = self.visit(node.right)
@@ -121,13 +130,17 @@ class TypeAnnotator(ast.NodeTransformer):
             node.left.typ,
             node.right.typ,
             node.op)
+        self.loading_context = previous_context
         return node
 
     def visit_Compare(self, node):
+        previous_context = self.loading_context
+        self.loading_context = ValueContext
         node.left = self.visit(node.left)
         node.ops = [self.visit(op) for op in node.ops]
         node.comparators = [self.visit(comp) for comp in node.comparators]
         node.typ = typing.Bool()
+        self.loading_context = previous_context
         return node
 
     def visit_Subscript(self, node):
@@ -150,9 +163,9 @@ class TypeAnnotator(ast.NodeTransformer):
         return node
 
     def visit_Name(self, node):
-        if not hasattr(node, "typ"):
-            sym = self.lookup_symbol(node.id)
-            if hasattr(sym, "typ") and sym.typ is not None:
-                node.typ = sym.typ
-            node.sym = sym
+        sym = self.lookup_symbol(node.id)
+        if hasattr(sym, "typ") and sym.typ is not None:
+            node.typ = sym.typ
+        node.sym = sym
+        node.loading_context = self.loading_context
         return node

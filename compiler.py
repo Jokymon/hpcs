@@ -1,4 +1,5 @@
 import ast
+import annotators
 import llvm_builder
 from typing import *
 
@@ -116,10 +117,9 @@ class CompilerVisitor(ast.NodeTransformer):
         return node
 
     def visit_Name(self, node):
-        # TODO: could use the expr_context of node to find out what to do
-        # (load, store, ...)
-        sym = node.sym
-        node.llvm_value = self.builder.load(sym.alloca, sym.name)
+        if node.loading_context==annotators.ValueContext:
+            sym = node.sym
+            node.llvm_value = self.builder.load(sym.alloca, sym.name)
         return node
 
     def visit_Num(self, node):
