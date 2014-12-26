@@ -9,6 +9,45 @@ class ModuleSpy(list):
     pass
 
 
+class BasicBlockSpy:
+    def __init__(self, name, block):
+        self.name = name
+        self.block = block
+
+    def append_action(self, item):
+        self.block.append(item)
+
+    def alloca(self, alloca_type, name):
+        self.append_action("ALLOCA: %s (%s)" % (name, alloca_type))
+        return "'%s'" % name
+
+    def store(self, value, alloca):
+        self.append_action("STORE: %s -> %s" % (value, alloca))
+
+    def load(self, alloca, name):
+        self.append_action("LOAD: %s -> %s" % (alloca, name))
+        return "%s" % name
+
+    def add(self, left, right, name):
+        self.append_action("ADD: %s + %s -> '%s'" % (left, right, name))
+        return "'%s'" % name
+
+    def compare(self, left, right, operator, name):
+        self.append_action("COMP_%s: %s, %s -> '%s'" %
+                           (operator, left, right, name))
+        return "'%s'" % name
+
+    def ret_void(self, *args, **kwargs):
+        pass
+
+    def sext(self, value, ext_type, name):
+        self.append_action("SEXT: %s -> %s (%s)" % (value, name, ext_type))
+        return "%s" % name
+
+    def inttoptr(self, value, target_type):
+        self.append_action("INTTOPTR: %u -> %s" % (value, target_type))
+
+
 class BuilderSpy:
     def __init__(self):
         self.actions = []
@@ -26,7 +65,7 @@ class BuilderSpy:
         return self
 
     def new_irbuilder(self, basic_block):
-        return self
+        return basic_block
 
     def new_struct(self, name, struct):
         self.append_action("STRUCT: %s %s" % (name, struct))
@@ -36,46 +75,17 @@ class BuilderSpy:
         self.actions.append("FUNCTION: %s" % name)
         return self
 
-    def add_basic_block(self, *args, **kwargs):
-        self.actions.append([])
-        return self
+    def add_basic_block(self, name):
+        new_block = []
+        self.actions.append(new_block)
+        return BasicBlockSpy(name, new_block)
 
     def get_irbuilder(self, *args, **kwargs):
         return self
 
-    def alloca(self, alloca_type, name):
-        self.append_action("ALLOCA: %s (%s)" % (name, alloca_type))
-        return "'%s'" % name
-
-    def store(self, value, alloca):
-        self.append_action("STORE: %s -> %s" % (value, alloca))
-
-    def load(self, alloca, name):
-        self.append_action("LOAD: %s -> %s" % (alloca, name))
-        return "%s" % name
-
-    def sext(self, value, ext_type, name):
-        self.append_action("SEXT: %s -> %s (%s)" % (value, name, ext_type))
-        return "%s" % name
-
-    def inttoptr(self, value, target_type):
-        self.append_action("INTTOPTR: %u -> %s" % (value, target_type))
-
-    def add(self, left, right, name):
-        self.append_action("ADD: %s + %s -> '%s'" % (left, right, name))
-        return "'%s'" % name
-
-    def compare(self, left, right, operator, name):
-        self.append_action("COMP_%s: %s, %s -> '%s'" %
-                           (operator, left, right, name))
-        return "'%s'" % name
-
     def new_constant(self, const_type, value):
         self.append_action("NEW_CONST: %s (%s)" % (value, const_type))
         return value
-
-    def ret_void(self, *args, **kwargs):
-        pass
 
     def verify(self, *args, **kwargs):
         pass
