@@ -69,6 +69,13 @@ s = "Some string"
         """
         assert self.ast.body[0].scope.find_symbol("s").typ == String()
 
+    def testCharacterFromString(self):
+        """
+s = "A string"
+c = s[3]
+        """
+        assert self.ast.body[0].scope.find_symbol("c").typ == Int8
+
     def testCallTypeAnnotation(self):
         """
 def return_int8(a : Int8) -> Int8:

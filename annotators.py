@@ -147,7 +147,8 @@ class TypeAnnotator(ast.NodeTransformer):
         # value, slice, ctx
         node.value = self.visit(node.value)
         node.slice = self.visit(node.slice)
-        if not isinstance(node.value.typ, typing.Pointer):
+        if not isinstance(node.value.typ, typing.Pointer) and \
+            not isinstance(node.value.typ, typing.String):
             raise TypeError(
                 "Expecting a pointer value. Can't dereference value @%u:%u" %
                 (node.lineno, node.col_offset))

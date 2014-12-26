@@ -32,6 +32,9 @@ Int32 = Integer(32)
 
 
 class String:
+    def __init__(self):
+        self.pointee_type = Int8
+
     def __eq__(self, other):
         if isinstance(other, String):
             return True
