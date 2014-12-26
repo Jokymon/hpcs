@@ -37,6 +37,13 @@ class BasicBlockSpy:
                            (operator, left, right, name))
         return "'%s'" % name
 
+    def branch(self, block):
+        self.append_action("BR: '%s'" % block.name)
+
+    def cbranch(self, if_value, then_block, else_block):
+        self.append_action("CBR: '%s' : '%s'" %
+                           (then_block.name, else_block.name))
+
     def ret_void(self, *args, **kwargs):
         pass
 
@@ -84,7 +91,6 @@ class BuilderSpy:
         return self
 
     def new_constant(self, const_type, value):
-        self.append_action("NEW_CONST: %s (%s)" % (value, const_type))
         return value
 
     def verify(self, *args, **kwargs):
@@ -116,7 +122,6 @@ a = 2
         self.builder_spy.assert_actions([
             "FUNCTION: main", [
                 "ALLOCA: a (Int8)",
-                "NEW_CONST: 2 (Int8)",
                 "STORE: 2 -> 'a'"
                 ]
             ])
@@ -129,8 +134,6 @@ a = 2 + 6
         self.builder_spy.assert_actions([
             "FUNCTION: main", [
                 "ALLOCA: a (Int8)",
-                "NEW_CONST: 2 (Int8)",
-                "NEW_CONST: 6 (Int8)",
                 "ADD: 2 + 6 -> 'addtmp'",
                 "STORE: 'addtmp' -> 'a'"
                 ]
@@ -144,8 +147,6 @@ a = 2 < 35
         self.builder_spy.assert_actions([
             "FUNCTION: main", [
                 "ALLOCA: a (Bool)",
-                "NEW_CONST: 2 (Int8)",
-                "NEW_CONST: 35 (Int8)",
                 "COMP_LT: 2, 35 -> 'comptmp'",
                 "STORE: 'comptmp' -> 'a'"
                 ]
@@ -163,9 +164,7 @@ c = a < b
                 "ALLOCA: a (Int8)",
                 "ALLOCA: b (Int16)",
                 "ALLOCA: c (Bool)",
-                "NEW_CONST: 4 (Int8)",
                 "STORE: 4 -> 'a'",
-                "NEW_CONST: 23234 (Int16)",
                 "STORE: 23234 -> 'b'",
                 "LOAD: 'a' -> a",
                 "LOAD: 'b' -> b",
@@ -184,6 +183,41 @@ class AClass:
         self.builder_spy.assert_actions([
             "FUNCTION: main", [
                 "STRUCT: AClass {  }"
+                ]
+            ])
+
+
+class TestControlStructures:
+    def setup_method(self, method):
+        tree = ast.parse(method.__doc__)
+        tree = annotators.TypeAnnotator().visit(tree)
+        self.tree = tree
+        self.builder_spy = BuilderSpy()
+        self.compiler = compiler.CompilerVisitor(self.builder_spy)
+
+    def testSimpleWhile(self):
+        """
+i = 0
+while i < 25:
+    i = i + 1
+        """
+        self.compiler.visit(self.tree)
+        self.builder_spy.assert_actions([
+            "FUNCTION: main", [
+                "ALLOCA: i (Int8)",
+                "STORE: 0 -> 'i'",
+                "BR: 'while_condition'"],
+                [ # while_condition:
+                "LOAD: 'i' -> i",
+                "COMP_LT: i, 25 -> 'comptmp'",
+                "CBR: 'while_statements' : 'after_while_block'"],
+                [ # while_statements
+                "LOAD: 'i' -> i",
+                "ADD: i + 1 -> 'addtmp'",
+                "STORE: 'addtmp' -> 'i'",
+                "BR: 'while_condition'"
+                ],
+                [ # after_while_block
                 ]
             ])
 
@@ -207,8 +241,6 @@ a = PlacedInt8Array(100, 0x1000)
         self.builder_spy.assert_actions([
             "FUNCTION: main", [
                 "ALLOCA: a (ptr(Int8))",
-                "NEW_CONST: 100 (Int8)",
-                "NEW_CONST: 4096 (Int16)",
                 "INTTOPTR: 4096 -> ptr(Int8)",
                 "STORE: None -> 'a'"
                 ]

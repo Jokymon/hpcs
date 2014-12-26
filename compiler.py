@@ -43,9 +43,9 @@ class CompilerVisitor(ast.NodeTransformer):
 
     def visit_Module(self, node):
         module = self.code_builder.new_module('main')
-        fun = module.new_function("main", Function(Void(), []))
-        self.bb = fun.add_basic_block("entry")
-        self.builder = self.code_builder.new_irbuilder(self.bb)
+        self.fun = module.new_function("main", Function(Void(), []))
+        bb = self.fun.add_basic_block("entry")
+        self.builder = self.code_builder.new_irbuilder(bb)
 
         for sym in node.scope.table.values():
             alloca = self.builder.alloca(sym.typ, sym.name)
@@ -66,6 +66,28 @@ class CompilerVisitor(ast.NodeTransformer):
 
     def visit_FunctionDef(self, node):
         # name, args, annotation, arg*, vararg, ...... body
+        return node
+
+    def visit_While(self, node):
+        # test, body, orelse
+        while_condition_block = self.fun.add_basic_block("while_condition")
+        while_statement_block = self.fun.add_basic_block("while_statements")
+        after_while_block = self.fun.add_basic_block("after_while_block")
+
+        self.builder.branch(while_condition_block)
+
+        self.builder = self.code_builder.new_irbuilder(while_condition_block)
+        node.test = self.visit(node.test)
+        self.builder.cbranch(node.test.llvm_value,
+                             while_statement_block,
+                             after_while_block)
+
+        self.builder = self.code_builder.new_irbuilder(while_statement_block)
+        node.body = [self.visit(stmt) for stmt in node.body]
+        self.builder.branch(while_condition_block)
+
+        self.builder = self.code_builder.new_irbuilder(after_while_block)
+
         return node
 
     def visit_Assign(self, node):

@@ -56,6 +56,14 @@ class LLVMIRBuilder:
     def inttoptr(self, value, target_type):
         return self.builder.inttoptr(value, convert_type(target_type))
 
+    def branch(self, block):
+        return self.builder.branch(block.basic_block)
+
+    def cbranch(self, if_value, then_blk, else_blk):
+        return self.builder.cbranch(if_value,
+                                    then_blk.basic_block,
+                                    else_blk.basic_block)
+
     def ret_void(self):
         return self.builder.ret_void()
 
