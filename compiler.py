@@ -43,6 +43,7 @@ class CompilerVisitor(ast.NodeTransformer):
 
     def visit_Module(self, node):
         module = self.code_builder.new_module('main')
+        self.module = module
         self.fun = module.new_function("main", Function(Void(), []))
         bb = self.fun.add_basic_block("entry")
         self.builder = self.code_builder.new_irbuilder(bb)
@@ -138,6 +139,19 @@ class CompilerVisitor(ast.NodeTransformer):
                                                'comptmp')
         return node
 
+    def visit_Index(self, node):
+        node.value = self.visit(node.value)
+        node.llvm_value = node.value.llvm_value
+        return node
+
+    def visit_Subscript(self, node):
+        # value, slice, ctx
+        node.value = self.visit(node.value)
+        node.slice = self.visit(node.slice)
+        idx = self.builder.gep(node.value.llvm_value, [node.slice.llvm_value])
+        node.llvm_value = self.builder.load(idx, 'subscript')
+        return node
+
     def visit_Name(self, node):
         if node.loading_context==annotators.ValueContext:
             sym = node.sym
@@ -146,4 +160,13 @@ class CompilerVisitor(ast.NodeTransformer):
 
     def visit_Num(self, node):
         node.llvm_value = self.code_builder.new_constant(node.typ, node.n)
+        return node
+
+    def visit_Str(self, node):
+        constant = self.code_builder.new_constant(node.typ, node.s)
+        var = self.module.new_global_variable("string_constant", constant)
+        value = self.builder.gep(var, 
+                                 2*[self.code_builder.new_constant(Int32, 0)])
+
+        node.llvm_value = value
         return node

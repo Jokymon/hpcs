@@ -12,3 +12,6 @@ class TestFullLLVMCompilation:
 
     def testTestWhile(self):
         compile_source("test_input/test_while.py")
+
+    def testStringIndex(self):
+        compile_source("test_input/test_string_index.py")

@@ -19,6 +19,8 @@ def convert_type(generic_type):
         return Type.int(1)
     elif isinstance(generic_type, typing.Integer):
         return Type.int(generic_type.width)
+    elif isinstance(generic_type, typing.String):
+        return Type.pointer(Type.int(8))
     elif isinstance(generic_type, typing.Pointer):
         return Type.pointer(convert_type(generic_type.pointee_type))
     elif isinstance(generic_type, typing.Function):
@@ -56,6 +58,9 @@ class LLVMIRBuilder:
     def inttoptr(self, value, target_type):
         return self.builder.inttoptr(value, convert_type(target_type))
 
+    def gep(self, pointer, indices):
+        return self.builder.gep(pointer, indices)
+
     def branch(self, block):
         return self.builder.branch(block.basic_block)
 
@@ -90,6 +95,11 @@ class LLVMModule:
         func = self.module.add_function(convert_type(signature), name)
         return LLVMFunction(func)
 
+    def new_global_variable(self, name, value):
+        variable = self.module.add_global_variable(value.type, name)
+        variable.initializer = value
+        return variable
+
     def verify(self):
         self.module.verify()
 
@@ -111,5 +121,7 @@ class LLVMBuilder:
         return Type.struct([], name=name)
 
     def new_constant(self, signature, value):
-        # TODO: use the right function of Constant based on signature
-        return Constant.int(convert_type(signature), value)
+        if isinstance(signature, typing.String):
+            return ConstantArray.stringz(value)
+        else:
+            return Constant.int(convert_type(signature), value)

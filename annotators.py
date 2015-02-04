@@ -98,11 +98,13 @@ class TypeAnnotator(ast.NodeTransformer):
     def visit_Assign(self, node):
         # targets* = value (expr)
         node.scope = self.top_scope
+        self.loading_context = ValueContext
         node.value = self.visit(node.value)
         if not hasattr(node.value, "typ"):
             raise KeyError("Can't determine type of '%s' @%u:%u" %
                            (node.value.id,
                             node.value.lineno, node.value.col_offset))
+        self.loading_context = AddressContext
         node.targets = [self.visit(target) for target in node.targets]
         target = node.targets[0]
         if isinstance(target, ast.Name):

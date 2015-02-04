@@ -54,6 +54,10 @@ class BasicBlockSpy:
     def inttoptr(self, value, target_type):
         self.append_action("INTTOPTR: %u -> %s" % (value, target_type))
 
+    def gep(self, pointer, indices):
+        self.append_action("GEP: %s %s" % (pointer, indices))
+        return "%s%s" % (pointer, indices)
+
 
 class BuilderSpy:
     def __init__(self):
@@ -81,6 +85,9 @@ class BuilderSpy:
     def new_function(self, name, func_type):
         self.actions.append("FUNCTION: %s" % name)
         return self
+
+    def new_global_variable(self, name, value):
+        return "%s(='%s')" % (name, value)
 
     def add_basic_block(self, name):
         new_block = []
@@ -136,6 +143,25 @@ a = 2 + 6
                 "ALLOCA: a (Int8)",
                 "ADD: 2 + 6 -> 'addtmp'",
                 "STORE: 'addtmp' -> 'a'"
+                ]
+            ])
+
+    def testCharacterFromString(self):
+        """
+s = "Some string"
+c = s[3]
+        """
+        self.compiler.visit(self.tree)
+        self.builder_spy.assert_actions([
+            "FUNCTION: main", [
+                "ALLOCA: s (String)",
+                "ALLOCA: c (Int8)",
+                "GEP: string_constant(='Some string') [0, 0]",
+                "STORE: string_constant(='Some string')[0, 0] -> 's'",
+                "LOAD: 's' -> s",
+                "GEP: s [3]",
+                "LOAD: s[3] -> subscript",
+                "STORE: subscript -> 'c'",
                 ]
             ])
 
