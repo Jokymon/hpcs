@@ -29,6 +29,10 @@ htmlcov
 .cache
 nosetests.xml
 
+# Test output files
+test_input/*.ll
+test_input/*.S
+
 # Translations
 *.mo
 
@@ -39,3 +43,7 @@ nosetests.xml
 
 # Vim
 *.swp
+
+# Files on a windows setup
+Lib/*
+Library/*
