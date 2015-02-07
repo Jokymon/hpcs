@@ -47,15 +47,18 @@ class CompilerVisitor(ast.NodeTransformer):
         self.fun = module.new_function("main", Function(Void(), []))
         bb = self.fun.add_basic_block("entry")
         self.builder = self.code_builder.new_irbuilder(bb)
+        self.in_main = True
 
         for sym in node.scope.table.values():
-            alloca = self.builder.alloca(sym.typ, sym.name)
-            sym.alloca = alloca
+            if not isinstance(sym.typ, Function):
+                alloca = self.builder.alloca(sym.typ, sym.name)
+                sym.alloca = alloca
 
         for stmt in node.body:
             self.visit(stmt)
 
-        self.builder.ret_void()
+        if self.in_main:
+            self.builder.ret_void()
         module.verify()
         node.module = module
         return node
@@ -67,6 +70,22 @@ class CompilerVisitor(ast.NodeTransformer):
 
     def visit_FunctionDef(self, node):
         # name, args, annotation, arg*, vararg, ...... body
+        if self.in_main:
+            self.builder.ret_void()
+            self.in_main = False
+
+        self.fun = self.module.new_function(node.name, Function(Void(), []))
+        bb = self.fun.add_basic_block("entry")
+        self.builder = self.code_builder.new_irbuilder(bb)
+
+        for sym in node.scope.table.values():
+            if not isinstance(sym.typ, Function):
+                alloca = self.builder.alloca(sym.typ, sym.name)
+                sym.alloca = alloca
+
+        node.body = [self.visit(stmt) for stmt in node.body]
+
+        self.builder.ret_void()
         return node
 
     def visit_While(self, node):

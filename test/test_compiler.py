@@ -86,6 +86,9 @@ class BuilderSpy:
         self.actions.append("FUNCTION: %s" % name)
         return self
 
+    def get_function(self, name):
+        pass
+
     def new_global_variable(self, name, value):
         return "%s(='%s')" % (name, value)
 
@@ -212,6 +215,30 @@ class AClass:
                 ]
             ])
 
+    def testEmptyFunction(self):
+        """
+def function():
+    pass
+        """
+        self.compiler.visit(self.tree)
+        self.builder_spy.assert_actions([
+            "FUNCTION: main", [],
+            "FUNCTION: function", []
+        ])
+
+    def testSimpleFunction(self):
+        """
+def function():
+    i = 231
+        """
+        self.compiler.visit(self.tree)
+        self.builder_spy.assert_actions([
+            "FUNCTION: main", [],
+            "FUNCTION: function", [
+                "ALLOCA: i (Int8)",
+                "STORE: 231 -> 'i'",
+                ]
+            ])
 
 class TestControlStructures:
     def setup_method(self, method):

@@ -15,3 +15,6 @@ class TestFullLLVMCompilation:
 
     def testStringIndex(self):
         compile_source("test_input/test_string_index.py")
+
+    def testFunctions(self):
+        compile_source("test_input/test_functions.py")
