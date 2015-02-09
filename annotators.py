@@ -108,13 +108,13 @@ class TypeAnnotator(ast.NodeTransformer):
         node.targets = [self.visit(target) for target in node.targets]
         target = node.targets[0]
         if isinstance(target, ast.Name):
-            sym = self.lookup_symbol(node.targets[0].id)
+            sym = self.lookup_symbol(target.id)
             if sym is None:
-                sym = symtab.Symbol(node.targets[0].id)
+                sym = symtab.Symbol(target.id)
                 sym.typ = node.value.typ
                 self.add_symbol_to_top_scope(sym)
-            node.targets[0].typ = node.value.typ
-            node.targets[0].sym = sym
+            target.typ = node.value.typ
+            target.sym = sym
         elif isinstance(target, ast.Subscript):
             if target.typ != node.value.typ:
                 raise TypeError("Cannot assign %s to %s @%u:%u" %
