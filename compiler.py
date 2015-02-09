@@ -111,11 +111,10 @@ class CompilerVisitor(ast.NodeTransformer):
         return node
 
     def visit_Assign(self, node):
-        lhs = node.targets[0].id
-        self.visit(node.value)
-        target = node.scope.find_symbol(lhs).alloca
+        node.targets = [self.visit(target) for target in node.targets]
+        node.value = self.visit(node.value)
         self.builder.store(node.value.llvm_value,
-                           node.scope.find_symbol(lhs).alloca)
+                           node.targets[0].llvm_value)
         return node
 
     def visit_Call(self, node):
@@ -175,6 +174,8 @@ class CompilerVisitor(ast.NodeTransformer):
         if node.loading_context==annotators.ValueContext:
             sym = node.sym
             node.llvm_value = self.builder.load(sym.alloca, sym.name)
+        elif node.loading_context==annotators.AddressContext:
+            node.llvm_value = node.sym.alloca
         return node
 
     def visit_Num(self, node):
