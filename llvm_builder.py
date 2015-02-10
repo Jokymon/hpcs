@@ -48,6 +48,9 @@ class LLVMIRBuilder:
     def add(self, left, right, name):
         return self.builder.add(left, right, name)
 
+    def mul(self, left, right, name):
+        return self.builder.mul(left, right, name)
+
     def compare(self, left, right, operator, name):
         llvm_operator = compare_signed_int[operator]
         return self.builder.icmp(llvm_operator, left, right, name)

@@ -135,7 +135,10 @@ class CompilerVisitor(ast.NodeTransformer):
             right = self.builder.sext(right, node.left.typ, 'right_extended')
         elif node.right.typ.width > node.left.typ.width:
             left = self.builder.sext(left, node.right.typ, 'left_extended')
-        node.llvm_value = self.builder.add(left, right, 'addtmp')
+        if isinstance(node.op, ast.Add):
+            node.llvm_value = self.builder.add(left, right, 'addtmp')
+        elif isinstance(node.op, ast.Mult):
+            node.llvm_value = self.builder.mul(left, right, 'multmp')
         return node
 
     def visit_Compare(self, node):

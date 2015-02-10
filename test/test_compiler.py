@@ -32,6 +32,10 @@ class BasicBlockSpy:
         self.append_action("ADD: %s + %s -> '%s'" % (left, right, name))
         return "'%s'" % name
 
+    def mul(self, left, right, name):
+        self.append_action("MUL: %s * %s -> '%s'" % (left, right, name))
+        return "'%s'" % name
+
     def compare(self, left, right, operator, name):
         self.append_action("COMP_%s: %s, %s -> '%s'" %
                            (operator, left, right, name))
@@ -146,6 +150,23 @@ a = 2 + 6
                 "ALLOCA: a (Int8)",
                 "ADD: 2 + 6 -> 'addtmp'",
                 "STORE: 'addtmp' -> 'a'"
+                ]
+            ])
+
+    def testMultiplication(self):
+        """
+a = 4
+b = 34 * a
+        """
+        self.compiler.visit(self.tree)
+        self.builder_spy.assert_actions([
+            "FUNCTION: main", [
+                "ALLOCA: a (Int8)",
+                "ALLOCA: b (Int8)",
+                "STORE: 4 -> 'a'",
+                "LOAD: 'a' -> a",
+                "MUL: 34 * a -> 'multmp'",
+                "STORE: 'multmp' -> 'b'"
                 ]
             ])
 
