@@ -1,4 +1,3 @@
-llvmpy
+llvmlite
 pytest
 pytest-cov
-mock

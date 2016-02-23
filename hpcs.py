@@ -5,7 +5,7 @@ import llvm_builder
 import compiler
 import hpcs_builtins
 from optparse import OptionParser
-from llvm.ee import *
+import llvmlite.binding as llvm
 
 
 def compile_source(source_file_name):
@@ -39,8 +39,10 @@ def main():
     file_name = args[0]
 
     module = compile_source(file_name)
+    module = llvm.parse_assembly(str(module))
 
-    tm = TargetMachine.new()
+    target = llvm.Target.from_triple("i386-pc-elf")
+    tm = target.create_target_machine('', '', 2, 'default', 'default')
 
     if options.output_filename == "" or options.output_filename is None:
         (filebasename, suffix) = os.path.splitext(file_name)
@@ -56,6 +58,7 @@ def main():
             code = str(module)
             target_file.write(code.encode())
         elif options.compile_only:
+            out = tm.emit_assembly(module)
             target_file.write(tm.emit_assembly(module).encode())
         else:
             target_file.write(tm.emit_object(module))

@@ -1,32 +1,37 @@
-from llvm.core import *
+import llvmlite.ir as ll
+import llvmlite.binding as llvm
 import typing
 
 
+llvm.initialize()
+llvm.initialize_native_asmprinter()
+llvm.initialize_native_target()
+
 compare_signed_int = {
-    'EQ': ICMP_EQ,
-    'NEQ': ICMP_NE,
-    'LT': ICMP_SLT,
-    'LTE': ICMP_SLE,
-    'GT': ICMP_SGT,
-    'GTE': ICMP_SGE,
+    'EQ': '==',
+    'NEQ': '!=',
+    'LT': '<',
+    'LTE': '<=',
+    'GT': '>',
+    'GTE': '>='
 }
 
 
 def convert_type(generic_type):
     if isinstance(generic_type, typing.Void):
-        return Type.void()
+        return ll.VoidType()
     elif isinstance(generic_type, typing.Bool):
-        return Type.int(1)
+        return ll.IntType(1)
     elif isinstance(generic_type, typing.Integer):
-        return Type.int(generic_type.width)
+        return ll.IntType(generic_type.width)
     elif isinstance(generic_type, typing.String):
-        return Type.pointer(Type.int(8))
+        return ll.PointerType(ll.IntType(8))
     elif isinstance(generic_type, typing.Pointer):
-        return Type.pointer(convert_type(generic_type.pointee_type))
+        return ll.PointerType(convert_type(generic_type.pointee_type))
     elif isinstance(generic_type, typing.Function):
         return_type = convert_type(generic_type.return_type)
         signature = [convert_type(t) for t in generic_type.signature]
-        return Type.function(return_type, signature)
+        return ll.FunctionType(return_type, signature)
     else:
         raise Exception("Couldn't convert this type: %s" % generic_type)
 
@@ -34,7 +39,7 @@ def convert_type(generic_type):
 class LLVMIRBuilder:
     # TODO: Do we have to create a wrapper for alloca's as well?
     def __init__(self, llvm_basic_block):
-        self.builder = Builder.new(llvm_basic_block.basic_block)
+        self.builder = ll.IRBuilder(llvm_basic_block.basic_block)
 
     def alloca(self, signature, name):
         return self.builder.alloca(convert_type(signature), name=name)
@@ -53,7 +58,7 @@ class LLVMIRBuilder:
 
     def compare(self, left, right, operator, name):
         llvm_operator = compare_signed_int[operator]
-        return self.builder.icmp(llvm_operator, left, right, name)
+        return self.builder.icmp_unsigned(llvm_operator, left, right, name=name)
 
     def sext(self, value, signature, name):
         return self.builder.sext(value, convert_type(signature), name)
@@ -92,19 +97,20 @@ class LLVMFunction:
 
 class LLVMModule:
     def __init__(self, name):
-        self.module = Module.new(name)
+        self.module = ll.Module(name=name)
 
     def new_function(self, name, signature):
-        func = self.module.add_function(convert_type(signature), name)
+        func_ty = convert_type(signature)
+        func = ll.Function(self.module, func_ty, name=name)
         return LLVMFunction(func)
 
     def new_global_variable(self, name, value):
-        variable = self.module.add_global_variable(value.type, name)
+        variable = ll.GlobalVariable(self.module, value.type, name)
         variable.initializer = value
         return variable
 
     def verify(self):
-        self.module.verify()
+        llvm.parse_assembly(str(self.module))
 
     def __str__(self):
         return str(self.module)
@@ -125,6 +131,6 @@ class LLVMBuilder:
 
     def new_constant(self, signature, value):
         if isinstance(signature, typing.String):
-            return ConstantArray.stringz(value)
+            return ll.Constant(ll.ArrayType(ll.IntType(8), len(value)), bytearray(value, "utf-8"))
         else:
-            return Constant.int(convert_type(signature), value)
+            return ll.Constant(convert_type(signature), value)
