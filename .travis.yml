@@ -5,7 +5,7 @@ install:
   - pip install -U pip setuptools
   - wget "http://repo.continuum.io/pkgs/free/linux-64/llvm-3.3-0.tar.bz2"
   - tar -xvjf llvm-3.3-0.tar.bz2
-  - PATH+=":`pwd`/bin"
+  - PATH="`pwd`/bin":$PATH
   - export LD_LIBRARY_PATH="`pwd`/lib"
   - export LLVM_CONFIG_PATH="`pwd`/bin/llvm-config"
   - $LLVM_CONFIG_PATH --cflags # test llvm-config
