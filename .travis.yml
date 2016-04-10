@@ -5,8 +5,11 @@ python:
   - "3.5"
   
 before_install:
+  - sudo deb http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.7 main
+  - sudo deb-src http://llvm.org/apt/trusty/ llvm-toolchain-trusty-3.7 main
+  - sudo wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add -
   - sudo apt-get update -q
-  - sudo apt-get install -y llvm-3.5-dev
+  - sudo apt-get install -y llvm-3.7-dev
   
 install:
   - pip install -U pip setuptools
