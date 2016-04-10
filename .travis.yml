@@ -2,6 +2,7 @@ language: python
 python:
   - "3.5"
 install:
+  - pip install --upgrade setuptools
   - wget "http://repo.continuum.io/pkgs/free/linux-64/llvm-3.2-0.tar.bz2"
   - tar -xjf llvm-3.2-0.tar.bz2
   - PATH+=":`pwd`/bin"
