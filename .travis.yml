@@ -15,8 +15,8 @@ before_install:
   
 install:
   - pip install -U pip setuptools
-  - export LLVM_CONFIG_PATH="`which llvm-config-3.7`"
-  - $LLVM_CONFIG_PATH --cflags # test llvm-config
+  - export LLVM_CONFIG="`which llvm-config-3.7`"
+  - $LLVM_CONFIG --cflags # test llvm-config
   - export LLVMPY_DYNLINK=1
   - pip install -r requirements.txt
 
